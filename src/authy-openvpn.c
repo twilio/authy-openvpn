@@ -10,9 +10,16 @@
 #define false 0
 
 
-/* Pending: define context, a.k.a state */
-
+/*
+  This state expects the following config line
+  plugin authy-openvpn.so APIURL APIKEY
+  where APIURL should be something like
+  https://api.authy.com/protected/json
+  and APIKEY like d57d919d11e6b221c9bf6f7c882028f9
+*/
 struct plugin_context {
+  char *pszAPIUrl;
+  char *pszAPIKey;
 };
 
 /*
@@ -22,7 +29,7 @@ struct plugin_context {
  * From openvpn/sample/sample-plugins/defer/simple.c
  */
 static const char *
-get_env (const char *name, const char *envp[])
+get_env(const char *name, const char *envp[])
 {
   if (envp)
     {
@@ -45,35 +52,65 @@ get_env (const char *name, const char *envp[])
  * Plugin initialization
  */
 OPENVPN_EXPORT openvpn_plugin_handle_t
-openvpn_plugin_open_v1 (unsigned int *type_mask, const char *argv[],
-                        const char *envp[])
+openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[],
+                       const char *envp[])
 {
   /* Context Allocation */
+  struct plugin_context *context;
+
+  context = (struct plugin_context *) calloc(1, sizeof(struct
+                                                       plugin_context));
+
+  if(argv[1] && argv[2])
+    {
+      context->pszAPIUrl = strdup(argv[1]);
+      context->pszAPIKey = strdup(argv[2]);
+    }
 
   /* Set type_mask, a.k.a callbacks that we want to intercept */
   *type_mask = OPENVPN_PLUGIN_MASK(OPENVPN_PLUGIN_AUTH_USER_PASS_VERIFY);
-    
+
   /* Cast and return the context */
+  return (openvpn_plugin_handle_t) context;
 }
 
 static int
-authenticate(plugin_context *context, const char *argv[], const char *envp)
+authenticate(struct plugin_context *context, const char *argv[], const char *envp[])
 {
-  /* doit */
+  int iStatus;
+  const char *pszUsername, *pszPassword, *pszControl, *pszResponse;
+
+  pszUsername = get_env("user_name", envp); /* this should be the authy id */
+  pszPassword = get_env("password", envp); /* this should be the token */
+  pszControl  = get_env("auth_control_file", envp);
+
+  /* check env vars aren't null */
+  if(!username || !password || !control)
+    return OPENVPN_PLUGIN_FUNC_ERROR;
+
+  /* TODO link authy api */
+  iStatus = verify(context->pszAPIUrl, context->pszAPIKey, password,
+                   username, pszResponse);
+
+
+  /* TODO parse pszResponse and check iStatus */
+  /* doit must set at the end the control file to '1' if suceed or to '0'
+     if fail*/
+  return OPENVPN_PLUGIN_FUNC_ERROR;
 }
 
-/*
+/*wd
  * Dispatcher
  */
 OPENVPN_EXPORT int
-openvpn_plugin_func_v1 (openvpn_plugin_handle_t handle, const int type,
-			const char *argv[], const char *envp[])
+openvpn_plugin_func_v1(openvpn_plugin_handle_t handle, const int type,
+                       const char *argv[], const char *envp[])
 {
 
-  /* Pending: set/cast handle to context */
-  
+  struct plugin_context *context = (struct plugin_context *) handle;
+
   if(type == OPENVPN_PLUGIN_AUTH_USER_PASS_VERIFY)
-    return authenticate(context, argv envp);
+    return authenticate(context, argv, envp);
   return OPENVPN_PLUGIN_FUNC_ERROR; /* Not sure, but for now it should
                                        be an error if we handle other callbacks */
 }
@@ -82,8 +119,10 @@ openvpn_plugin_func_v1 (openvpn_plugin_handle_t handle, const int type,
  * Free the memory related with the context
  */
 OPENVPN_EXPORT void
-openvpn_plugin_close_v1 (openvpn_plugin_handle_t handle)
+openvpn_plugin_close_v1(openvpn_plugin_handle_t handle)
 {
-  /* struct plugin_context *context = (struct plugin_context *) handle; */
-  /* free (context); */
+  struct plugin_context *context = (struct plugin_context *) handle;
+  free(context->pszAPIUrl);
+  free(context->pszAPIKey);
+  free(context);
 }
