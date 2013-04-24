@@ -77,26 +77,31 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[],
 static int
 authenticate(struct plugin_context *context, const char *argv[], const char *envp[])
 {
-  int iStatus;
-  const char *pszUsername, *pszPassword, *pszControl, *pszResponse;
+  /* int iStatus; */
+  const char *pszUsername, *pszPassword, *pszControl;/* , *pszResponse; */
 
-  pszUsername = get_env("user_name", envp); /* this should be the authy id */
+  const char *pszCommonName;                 /* delete me */
+  pszCommonName = get_env("common_name", envp); /* delete me */
+  pszUsername = get_env("username", envp); /* this should be the authy id */
   pszPassword = get_env("password", envp); /* this should be the token */
   pszControl  = get_env("auth_control_file", envp);
 
   /* check env vars aren't null */
-  if(!username || !password || !control)
+  if(!pszUsername || !pszPassword || !pszControl)
     return OPENVPN_PLUGIN_FUNC_ERROR;
 
+  printf(" common name = %s\n user name = %s\n password = %s\n control = %s\n",
+         pszCommonName, pszUsername, pszPassword, pszControl);
   /* TODO link authy api */
-  iStatus = verify(context->pszAPIUrl, context->pszAPIKey, password,
-                   username, pszResponse);
+  /* iStatus = verify(context->pszAPIUrl, context->pszAPIKey, password, */
+  /*                  username, pszResponse); */
 
 
   /* TODO parse pszResponse and check iStatus */
   /* doit must set at the end the control file to '1' if suceed or to '0'
      if fail*/
-  return OPENVPN_PLUGIN_FUNC_ERROR;
+  return OPENVPN_PLUGIN_FUNC_DEFERRED; /* for now just to debug the
+                                          envp */
 }
 
 /*wd
