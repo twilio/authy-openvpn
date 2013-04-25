@@ -52,7 +52,7 @@ static int
 url_builder(const char *pszAPIUrl, const char *pszAPIKey,
             char *pszEndPoint, char *pszUrl)
 {
-  sprintf(pszUrl, "%s%s?api_key=%s", pszAPIUrl, pszEndPoint, pszAPIKey);
+  return sprintf(pszUrl, "%s%s?api_key=%s", pszAPIUrl, pszEndPoint, pszAPIKey);
 }
 
 extern int
