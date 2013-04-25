@@ -84,17 +84,24 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[],
 static int
 parse_response(char *pszResponse)
 {
+  int cnt;
   jsmn_parser parser;
   jsmn_init(&parser);
   jsmntok_t tokens[20];
   jsmn_parse(&parser, pszResponse, tokens, 20);
 
-  if(!TOKEN_STRING(pszResponse, tokens[1], "success"))
-    return FAILURE;
-
-  if(TOKEN_STRING(pszResponse, tokens[2], "true"))
-    return SUCCESS;
-
+  /* success isn't always on the same place, look until 19 because it
+     shouldn't be the last one because it won't be a key */
+  for (cnt = 0; cnt < 19; ++cnt)
+    {
+      if(TOKEN_STRING(pszResponse, tokens[cnt], "success"))
+        {
+          if(TOKEN_STRING(pszResponse, tokens[cnt+1], "true"))
+            return SUCCESS;
+          else
+            return FAILURE;
+        }
+    }
   return FAILURE;
 }
 
@@ -108,7 +115,7 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   pszResponse   = (char *) calloc(255, sizeof(char));
 
   /* the common name is the AuthyID, this need to be setted on the
-  client certificate */
+     client certificate */
   pszAuthyID = get_env("common_name", envp);
   /* the username is the TOKEN to let the user see the typed token */
   pszToken   = get_env("username", envp);
@@ -125,7 +132,9 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
 
   if(iStatus == SUCCESS)
     iStatus = parse_response(pszResponse);
-
+  else
+    iStatus = FAILURE;          /* this is to ensure that iStatus is
+  just 1 or 0, because verify can return more than 0 and 1 */
   free(pszResponse);
 
   /* set the control file to '1' if suceed or to '0' if fail */
