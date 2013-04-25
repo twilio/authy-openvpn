@@ -6,10 +6,15 @@
 #include "jsmn.h"
 #include "authy_api.h"
 
-/* bool definitions */
-#define bool int
-#define true 1
-#define false 0
+#define SUCCESS 0
+#define FAILURE 1
+
+#define TOKEN_STRING(js, t, s)                          \
+  (strncmp(js+(t).start, s, (t).end - (t).start) == 0   \
+   && strlen(s) == (t).end - (t).start)
+
+#define TOKEN_PRINTF(js, t)                                     \
+  printf("Token %.*s\n", (t).end - (t).start, &js[(t).start])
 
 
 /*
@@ -30,7 +35,7 @@ struct plugin_context {
  * if found or NULL otherwise.
  * From openvpn/sample/sample-plugins/defer/simple.c
  */
-static const char *
+static char *
 get_env(const char *name, const char *envp[])
 {
   if (envp)
@@ -43,7 +48,7 @@ get_env(const char *name, const char *envp[])
             {
               const char *cp = envp[i] + namelen;
               if (*cp == '=')
-                return cp + 1;
+                return (char *) cp + 1;
             }
         }
     }
@@ -77,49 +82,70 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[],
 }
 
 static int
+parse_response(char *pszResponse)
+{
+  jsmn_parser parser;
+  jsmn_init(&parser);
+  jsmntok_t tokens[20];
+  jsmn_parse(&parser, pszResponse, tokens, 20);
+
+  if(!TOKEN_STRING(pszResponse, tokens[1], "success"))
+    return FAILURE;
+
+  if(TOKEN_STRING(pszResponse, tokens[2], "true"))
+    return SUCCESS;
+
+  return FAILURE;
+}
+
+static int
 authenticate(struct plugin_context *context, const char *argv[], const char *envp[])
 {
   int iStatus;
-  const char *pszUsername, *pszPassword, *pszControl;
-  char *pszResponse;
+  char *pszToken, *pszControl, *pszAuthyID, *pszResponse;
+  FILE *pFileAuth;
 
-  const char *pszCommonName;                 /* delete me */
-  pszCommonName = get_env("common_name", envp); /* delete me */
-  pszUsername = get_env("username", envp); /* this should be the authy id */
-  pszPassword = get_env("password", envp); /* this should be the token */
-  pszControl  = get_env("auth_control_file", envp);
+  pszResponse   = (char *) calloc(255, sizeof(char));
 
-  /* check env vars aren't null */
-  if(!pszUsername || !pszPassword || !pszControl)
+  /* the common name is the AuthyID, this need to be setted on the
+  client certificate */
+  pszAuthyID = get_env("common_name", envp);
+  /* the username is the TOKEN to let the user see the typed token */
+  pszToken   = get_env("username", envp);
+  pszControl = get_env("auth_control_file", envp);
+
+  pFileAuth = fopen(pszControl, "w");
+
+  if(!pszAuthyID || !pszToken || !pszControl)
     return OPENVPN_PLUGIN_FUNC_ERROR;
 
-  printf(" common name = %s\n user name = %s\n password = %s\n control = %s\n",
-         pszCommonName, pszUsername, pszPassword, pszControl);
-  /* TODO link authy api */
-  pszResponse = (char *) malloc(1024);
   iStatus = verify((const char *) context->pszAPIUrl,
                    (const char *) context->pszAPIKey,
-                   pszPassword, pszUsername, pszResponse);
-  printf(" response = %s\n", pszResponse);
-  /* FILE * pFileAuth = fopen(pszControl, "w"); */
-  /* fprintf(pFileAuth, "1");  */
+                   pszToken, pszAuthyID, pszResponse);
 
-  /* TODO parse pszResponse and check iStatus */
-  /* doit must set at the end the control file to '1' if suceed or to '0'
-     if fail*/
+  if(iStatus == SUCCESS)
+    iStatus = parse_response(pszResponse);
+
   free(pszResponse);
-  return OPENVPN_PLUGIN_FUNC_DEFERRED; /* for now just to debug the
-                                          envp */
+
+  /* set the control file to '1' if suceed or to '0' if fail */
+  if(iStatus != SUCCESS)
+    fprintf(pFileAuth, "0");
+  else
+    fprintf(pFileAuth, "1");
+
+  fclose(pFileAuth);
+
+  return iStatus;
 }
 
-/*wd
+/*
  * Dispatcher
  */
 OPENVPN_EXPORT int
 openvpn_plugin_func_v1(openvpn_plugin_handle_t handle, const int type,
                        const char *argv[], const char *envp[])
 {
-
   struct plugin_context *context = (struct plugin_context *) handle;
 
   if(type == OPENVPN_PLUGIN_AUTH_USER_PASS_VERIFY)
