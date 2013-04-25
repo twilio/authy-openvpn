@@ -3,6 +3,8 @@
 #include <stdlib.h>
 
 #include "openvpn-plugin.h"
+#include "jsmn.h"
+#include "authy_api.h"
 
 /* bool definitions */
 #define bool int
@@ -77,8 +79,9 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[],
 static int
 authenticate(struct plugin_context *context, const char *argv[], const char *envp[])
 {
-  /* int iStatus; */
-  const char *pszUsername, *pszPassword, *pszControl;/* , *pszResponse; */
+  int iStatus;
+  const char *pszUsername, *pszPassword, *pszControl;
+  char *pszResponse;
 
   const char *pszCommonName;                 /* delete me */
   pszCommonName = get_env("common_name", envp); /* delete me */
@@ -93,13 +96,18 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   printf(" common name = %s\n user name = %s\n password = %s\n control = %s\n",
          pszCommonName, pszUsername, pszPassword, pszControl);
   /* TODO link authy api */
-  /* iStatus = verify(context->pszAPIUrl, context->pszAPIKey, password, */
-  /*                  username, pszResponse); */
-
+  pszResponse = (char *) malloc(1024);
+  iStatus = verify((const char *) context->pszAPIUrl,
+                   (const char *) context->pszAPIKey,
+                   pszPassword, pszUsername, pszResponse);
+  printf(" response = %s\n", pszResponse);
+  /* FILE * pFileAuth = fopen(pszControl, "w"); */
+  /* fprintf(pFileAuth, "1");  */
 
   /* TODO parse pszResponse and check iStatus */
   /* doit must set at the end the control file to '1' if suceed or to '0'
      if fail*/
+  free(pszResponse);
   return OPENVPN_PLUGIN_FUNC_DEFERRED; /* for now just to debug the
                                           envp */
 }
