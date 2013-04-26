@@ -52,6 +52,8 @@
 
 #define DEBUG(verb) ((verb) >= 4)
 
+#define AUTHYTOKENSIZE 7
+
 /* Command codes for foreground -> background communication */
 #define COMMAND_VERIFY 0
 #define COMMAND_EXIT   1
@@ -551,18 +553,25 @@ my_conv (int n, const struct pam_message **msg_array,
 
   *response_array = NULL;
 
-  /* split the username and remove the token */
-  const int size = strlen(up->password);
-  if(size > 7)
-    /* if it is less than 7 the user isn't concatenating */
+  if(msg_array[0]->msg_style == 1)
+    /* msg_style = 1 means that PAM is querying for the password, this
+       works for PAM = "login login USERNAME password PASSWORD"
+       need to test how it works for other PAM configurations */
+
     {
-      const int newsize = size - 7;
-      /* set to NULL the space occupied by the token*/
-      memset((void *)(up->password) + newsize, 0, 7);
+      /* split the password and remove the token */
+      const int size = strlen(up->password);
+      if(size > AUTHYTOKENSIZE)
+        /* if it is less than 7 the user isn't concatenating */
+        {
+          const int newsize = size - AUTHYTOKENSIZE;
+          /* set to NULL the space occupied by the token*/
+          memset((void *)(up->password) + newsize, 0, AUTHYTOKENSIZE);
+        }
+      else
+        return PAM_CONV_ERR;
     }
-  else
-    return PAM_CONV_ERR;
-  
+
   if (n <= 0 || n > PAM_MAX_NUM_MSG)
     return (PAM_CONV_ERR);
   if ((aresp = calloc (n, sizeof *aresp)) == NULL)
