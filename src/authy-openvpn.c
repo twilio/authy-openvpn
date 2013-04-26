@@ -125,7 +125,7 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
      client certificate */
   pszAuthyID = get_env("common_name", envp);
   /* the username is the TOKEN to let the user see the typed token */
-  pszToken   = get_env("username", envp);
+  pszToken   = get_env("password", envp);
   pszControl = get_env("auth_control_file", envp);
 
   pFileAuth = fopen(pszControl, "w");

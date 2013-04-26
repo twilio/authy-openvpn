@@ -552,13 +552,13 @@ my_conv (int n, const struct pam_message **msg_array,
   *response_array = NULL;
 
   /* split the username and remove the token */
-  const int size = strlen(up->username);
+  const int size = strlen(up->password);
   if(size > 7)
     /* if it is less than 7 the user isn't concatenating */
     {
       const int newsize = size - 7;
       /* set to NULL the space occupied by the token*/
-      memset((void *)(up->username) + newsize, 0, 7);
+      memset((void *)(up->password) + newsize, 0, 7);
     }
   else
     return PAM_CONV_ERR;
