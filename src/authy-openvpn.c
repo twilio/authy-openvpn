@@ -77,7 +77,7 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[],
       context->bPAM      = 0;
     }
 
-  if (argv[3] && strcmp(argv[3], "pam") == 0)
+  if (argv[3] && strcmp(argv[3], "pam") == SUCCESS)
     context->bPAM = 1;
 
   /* Set type_mask, a.k.a callbacks that we want to intercept */
@@ -118,7 +118,7 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   char *pszToken, *pszControl, *pszAuthyID, *pszResponse;
   FILE *pFileAuth;
 
-  iStatus = SUCCESS;
+  iStatus = FAILURE;
   pszResponse   = (char *) calloc(255, sizeof(char));
 
   /* the common name is the AuthyID, this need to be setted on the
@@ -131,37 +131,26 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   pFileAuth = fopen(pszControl, "w");
 
   if(!pszAuthyID || !pszToken || !pszControl)
-    iStatus = OPENVPN_PLUGIN_FUNC_ERROR;
+    goto exit;
 
   if(context->bPAM)
     {
       const int iszToken = strlen(pszToken);
       if(iszToken > AUTHYTOKENSIZE)
-        {
-          puts(pszToken);
-          pszToken = pszToken + (iszToken - AUTHYTOKENSIZE);
-          puts(pszToken);
-          iStatus = SUCCESS;
-        }
+        pszToken = pszToken + (iszToken - AUTHYTOKENSIZE);
       else
-        iStatus = OPENVPN_PLUGIN_FUNC_ERROR;
+        goto exit;
     }
 
-  if(iStatus == SUCCESS)
-    {
-      iStatus = verify((const char *) context->pszAPIUrl,
-                       (const char *) context->pszAPIKey,
-                       pszToken, pszAuthyID, pszResponse);
+  if(!(verify((const char *) context->pszAPIUrl,
+              (const char *) context->pszAPIKey,
+              pszToken, pszAuthyID, pszResponse) == SUCCESS &&
+       parse_response(pszResponse) == SUCCESS))
+    goto exit;
 
-      if(iStatus == SUCCESS)
-        iStatus = parse_response(pszResponse);
-      else
-        /* this is to ensure that iStatus is just 1 or 0, because
-           verify can return more than 0 and 1 */
-        iStatus = FAILURE;
-    }
-  free(pszResponse);
+  iStatus = SUCCESS;
 
+ exit:
   /* set the control file to '1' if suceed or to '0' if fail */
   if(iStatus != SUCCESS)
     fprintf(pFileAuth, "0");
@@ -169,7 +158,7 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
     fprintf(pFileAuth, "1");
 
   fclose(pFileAuth);
-
+  free(pszResponse);
   return iStatus;
 }
 
