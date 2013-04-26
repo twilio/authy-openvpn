@@ -5,7 +5,7 @@ CC=gcc
 LIBNAME=authy-openvpn
 CFLAGS=-fPIC -O2 -Wall
 OBJFLAGS=-I./include/ -lcurl -c
-LIBFLAGS=-shared -Wl,-soname,$(OBJ).so
+LIBFLAGS=-shared -Wl,-soname,$(LIBNAME).so
 
 all: clean $(OBJ).so
 
