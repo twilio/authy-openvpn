@@ -11,9 +11,6 @@
 
 #define AUTHYTOKENSIZE 7
 
-#define TOKEN_STRING(js, t, s)                          \
-  (strncmp(js+(t).start, s, (t).end - (t).start) == 0   \
-   && strlen(s) == (t).end - (t).start)
 
 /*
   This state expects the following config line
@@ -26,9 +23,9 @@
   nopam = 0;
 */
 struct plugin_context {
-  char *pszAPIUrl;
-  char *pszAPIKey;
-  int bPAM;
+  char *psz_API_url;
+  char *psz_API_key;
+  int b_PAM;
 };
 
 /*
@@ -72,13 +69,13 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[],
 
   if(argv[1] && argv[2])
     {
-      context->pszAPIUrl = strdup(argv[1]);
-      context->pszAPIKey = strdup(argv[2]);
-      context->bPAM      = 0;
+      context->psz_API_url = strdup(argv[1]);
+      context->psz_API_key = strdup(argv[2]);
+      context->b_PAM       = 0;
     }
 
   if (argv[3] && strcmp(argv[3], "pam") == SUCCESS)
-    context->bPAM = 1;
+    context->b_PAM = 1;
 
   /* Set type_mask, a.k.a callbacks that we want to intercept */
   *type_mask = OPENVPN_PLUGIN_MASK(OPENVPN_PLUGIN_AUTH_USER_PASS_VERIFY);
@@ -88,21 +85,23 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[],
 }
 
 static int
-parse_response(char *pszResponse)
+parse_response(char *psz_response)
 {
   int cnt;
   jsmn_parser parser;
   jsmn_init(&parser);
   jsmntok_t tokens[20];
-  jsmn_parse(&parser, pszResponse, tokens, 20);
+  jsmn_parse(&parser, psz_response, tokens, 20);
 
   /* success isn't always on the same place, look until 19 because it
      shouldn't be the last one because it won't be a key */
   for (cnt = 0; cnt < 19; ++cnt)
     {
-      if(TOKEN_STRING(pszResponse, tokens[cnt], "success"))
+      if(strncmp(psz_response + (tokens[cnt]).start, "success",
+                 (tokens[cnt]).end - (tokens[cnt]).start) == 0)
         {
-          if(TOKEN_STRING(pszResponse, tokens[cnt+1], "true"))
+          if(strncmp(psz_response + (tokens[cnt+1]).start, "true",
+                     (tokens[cnt+1]).end - (tokens[cnt+1]).start) == 0)
             return SUCCESS;
           else
             return FAILURE;
@@ -114,52 +113,52 @@ parse_response(char *pszResponse)
 static int
 authenticate(struct plugin_context *context, const char *argv[], const char *envp[])
 {
-  int iStatus;
-  char *pszToken, *pszControl, *pszAuthyID, *pszResponse;
-  FILE *pFileAuth;
+  int i_status;
+  char *psz_token, *psz_control, *psz_authy_ID, *psz_response;
+  FILE *p_file_auth;
 
-  iStatus = FAILURE;
-  pszResponse   = (char *) calloc(255, sizeof(char));
+  i_status = FAILURE;
+  psz_response   = (char *) calloc(255, sizeof(char));
 
   /* the common name is the AuthyID, this need to be setted on the
      client certificate */
-  pszAuthyID = get_env("common_name", envp);
+  psz_authy_ID = get_env("common_name", envp);
   /* the username is the TOKEN to let the user see the typed token */
-  pszToken   = get_env("password", envp);
-  pszControl = get_env("auth_control_file", envp);
+  psz_token   = get_env("password", envp);
+  psz_control = get_env("auth_control_file", envp);
 
-  pFileAuth = fopen(pszControl, "w");
+  p_file_auth = fopen(psz_control, "w");
 
-  if(!pszAuthyID || !pszToken || !pszControl)
+  if(!psz_authy_ID || !psz_token || !psz_control)
     goto exit;
 
-  if(context->bPAM)
+  if(context->b_PAM)
     {
-      const int iszToken = strlen(pszToken);
-      if(iszToken > AUTHYTOKENSIZE)
-        pszToken = pszToken + (iszToken - AUTHYTOKENSIZE);
+      const int is_token = strlen(psz_token);
+      if(is_token > AUTHYTOKENSIZE)
+        psz_token = psz_token + (is_token - AUTHYTOKENSIZE);
       else
         goto exit;
     }
 
-  if(!(verify((const char *) context->pszAPIUrl,
-              (const char *) context->pszAPIKey,
-              pszToken, pszAuthyID, pszResponse) == SUCCESS &&
-       parse_response(pszResponse) == SUCCESS))
+  if(!(verify((const char *) context->psz_API_url,
+              (const char *) context->psz_API_key,
+              psz_token, psz_authy_ID, psz_response) == SUCCESS &&
+       parse_response(psz_response) == SUCCESS))
     goto exit;
 
-  iStatus = SUCCESS;
+  i_status = SUCCESS;
 
  exit:
   /* set the control file to '1' if suceed or to '0' if fail */
-  if(iStatus != SUCCESS)
-    fprintf(pFileAuth, "0");
+  if(i_status != SUCCESS)
+    fprintf(p_file_auth, "0");
   else
-    fprintf(pFileAuth, "1");
+    fprintf(p_file_auth, "1");
 
-  fclose(pFileAuth);
-  free(pszResponse);
-  return iStatus;
+  fclose(p_file_auth);
+  free(psz_response);
+  return i_status;
 }
 
 /*
@@ -184,7 +183,7 @@ OPENVPN_EXPORT void
 openvpn_plugin_close_v1(openvpn_plugin_handle_t handle)
 {
   struct plugin_context *context = (struct plugin_context *) handle;
-  free(context->pszAPIUrl);
-  free(context->pszAPIKey);
+  free(context->psz_API_url);
+  free(context->psz_API_key);
   free(context);
 }
