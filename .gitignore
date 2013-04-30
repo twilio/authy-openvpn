@@ -1,6 +1,6 @@
 # Object files
 *.o
-
+*.gch
 # Libraries
 *.lib
 *.a
@@ -15,3 +15,7 @@
 *.exe
 *.out
 *.app
+
+# Emacs Temps
+*~
+
