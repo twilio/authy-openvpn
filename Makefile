@@ -7,7 +7,7 @@ CFLAGS=-fPIC -O2 -Wall
 OBJFLAGS=-I./include/ -c
 LIBFLAGS=-shared -Wl,-soname
 PAM=pam
-
+INSTDIR=/usr/lib/authy
 all: $(LIBNAME).so $(PAM).so
 
 objects:
@@ -26,7 +26,8 @@ $(PAM).so: $(PAM).o
 	$(CC) $(CFLAGS) $(LIBFLAGS),$(PAM).so -o $(PAM).so *.o -lc -lpam
 
 install: $(LIBNAME).so $(PAM).so
-	cp $(LIBNAME).so $(PAM).so $(DESTDIR)/
+	mkdir -p $(DESTDIR)$(INSTDIR)
+	cp $(LIBNAME).so $(PAM).so $(DESTDIR)$(INSTDIR)
 
 clean:
 	rm -f *.o
