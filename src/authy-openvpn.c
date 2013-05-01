@@ -14,9 +14,8 @@
 
 /*
   This state expects the following config line
-  plugin authy-openvpn.so APIURL APIKEY
-  where APIURL should be something like
-  APIURL https://api.authy.com/protected/json
+  plugin authy-openvpn.so APIURL APIKEY PAM
+  where APIURL should be something like  https://api.authy.com/protected/json
   APIKEY like d57d919d11e6b221c9bf6f7c882028f9
   PAM pam | nopam # it is nopam by default
   pam = 1;

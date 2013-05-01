@@ -7,8 +7,8 @@
    authenticate users to your vpn.
    
  * The Second one is `pam.so` that is the complementary plugin that
-   you could use with the auth-openvpn plugin, to use cert + user/pass
-   + token to authenticate users to your vpn.
+   you could use with the auth-openvpn plugin, to use cert +
+   user/pass + token to authenticate users to your vpn.
    
 ## Important things to know before you use this plugin
 
@@ -38,6 +38,59 @@ There are 3 options:
 2.  Use the debian package (.deb).
 3.  Use the red hat package (.rpm).
 
+## Building the plugin from the source code
+
+Your environment needs to satisfy the list of
+[dependencies](#dependencies) before you proceed to the compilation
+
+You can download the code from
+[GitHub](https://github.com/authy/authy-open-vpn/archive/master.zip)
+or clone with `git clone https://github.com/authy/authy-open-vpn.git`
+
+Once you have the code in your local machine and your working
+directory is pointing where your downloaded the code
+
+	make
+
+This will compile the plugin an generate the following shared objects
+`authy-openvpn.so` and `pam.so`, once you have the plugin object you
+can install wherever you want, just remember where do you install the
+plugins because you will need that later to config the plugins withing
+the server configuration of the vpn.
+
+The other option is to run as root
+
+	make install
+
+This will compile and install both elements of the plugin in
+`/usr/lib/authy`
+
+## Installing/Getting the .deb
+
+## Installing/Getting the .rpm
+
+## Configuring OpenVPN
+
+At the end of the `server.conf` (it is usually at
+`/etc/openvpn/server.conf`) or the plugins section you will need to
+add the following line
+
+	plugin /INSTALLATIONDIR/authy-openvpn.so APIURL APIKEY PAM
+
+where:
+INSTALLATIONDIR is usually /usr/lib/authy if you used `make install`
+or one of the default packages
+APIURL is like https://api.authy.com/protected/json
+APIKEY is your API Key something like d57d919d11e6b221c9bf6f7c882028f9
+PAM nopam
+it is nopam by default so if you decided to don't use the pam module
+you can avoid that param. Given the case you want to use the pam
+module you should set that param to `pam` and add
+
+	plugin /INSTALLATIONDIR/pam.so YOUR_PAM
+
+YOUR_PAM should be something like "login login USERNAME password
+PASSWORD" it will usually work with any other module
 
 ## Dependencies
 
