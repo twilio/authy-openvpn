@@ -94,7 +94,7 @@ INSTALLATIONDIR is usually /usr/lib/authy if you used `make install`
 or one of the default packages (.deb or .rpm)
 
 APIURL is https://api.authy.com/protected/json or
-http://sandbox-api.authy.com
+http://sandbox-api.authy.com/protected/json
 
 APIKEY is your API Key something like d57d919d11e6b221c9bf6f7c882028f9
 
