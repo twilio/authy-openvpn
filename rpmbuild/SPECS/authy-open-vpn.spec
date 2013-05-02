@@ -1,5 +1,6 @@
 %define name authy-open-vpn
-%define version 1.0
+%define version 1.1
+
 Name:           %{name}
 Version:        %{version}
 Release:        1%{?dist}
@@ -33,21 +34,24 @@ make -j1
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
-
+cp postinstall $RPM_BUILD_ROOT/usr/lib/authy/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%post
+
+echo "Remember to run \"bash $RPM_BUILD_ROOT/usr/lib/authy/postinstall\" for configuration"
 
 %files
 %defattr(-,root,root,-)
 /usr/lib/authy/authy-openvpn.so
 /usr/lib/authy/pam.so
-
+/usr/lib/authy/postinstall
 
 
 %changelog
-* Thu May 2 2013 Sebastian Arcila Valenzuela (sarcilav) <sebastian at authy.com> - 1.0-1
+* Thu May 2 2013 Sebastian Arcila Valenzuela (sarcilav) <sebastian at authy.com> - 1.1-1
 - Initial release
 
 
