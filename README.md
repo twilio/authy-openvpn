@@ -98,7 +98,12 @@ PASSWORD" it will usually work with any other module
 * libcurl4-openssl-dev
 * libpam0g-dev
 
-## Basic Instruction to create the .deb
+## Basic Instructions to create the .deb
 
 * Create the .tar.gz of the code
 * dpkg-buildpackage -rfakeroot
+
+## Basic Instructions to create the .rpm
+
+* Create the .tar.gz of the code and move it inside the rpmbuild/SOURCES
+* rpmbuild -v -bb --clean SPECS/authy-open-vpn.spec
