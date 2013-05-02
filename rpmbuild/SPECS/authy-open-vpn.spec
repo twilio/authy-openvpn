@@ -1,5 +1,5 @@
 %define name authy-open-vpn
-%define version 2.0
+%define version 2.1
 
 Name:           %{name}
 Version:        %{version}
@@ -51,7 +51,7 @@ echo "Remember to run \"bash $RPM_BUILD_ROOT/usr/lib/authy/postinstall\" for con
 /usr/sbin/authy_vpn_add_users
 
 %changelog
-* Wed May 8 2013 Sebastian Arcila Valenzuela (sarcilav) <sebastian at authy.com> - 2.0-2
-- Release 2.0
+* Fri May 17 2013 Sebastian Arcila Valenzuela (sarcilav) <sebastian at authy.com> - 2.1-2
+- Release 2.1
 
 
