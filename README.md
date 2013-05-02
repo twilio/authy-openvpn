@@ -78,14 +78,19 @@ add the following line
 	plugin /INSTALLATIONDIR/authy-openvpn.so APIURL APIKEY PAM
 
 where:
+
 INSTALLATIONDIR is usually /usr/lib/authy if you used `make install`
-or one of the default packages
-APIURL is like https://api.authy.com/protected/json
+or one of the default packages (.deb or .rpm)
+
+APIURL is https://api.authy.com/protected/json or
+http://sandbox-api.authy.com
+
 APIKEY is your API Key something like d57d919d11e6b221c9bf6f7c882028f9
-PAM nopam
-it is nopam by default so if you decided to don't use the pam module
-you can avoid that param. Given the case you want to use the pam
-module you should set that param to `pam` and add
+
+PAM should be `nopam` or `pam`, it is `nopam` by default so if you
+decided to don't use the pam module you can avoid that param. Given
+the case you want to use the pam module you should set that param to
+`pam` and add
 
 	plugin /INSTALLATIONDIR/pam.so YOUR_PAM
 
@@ -95,8 +100,8 @@ PASSWORD" it will usually work with any other module
 ## Dependencies
 
 * libc6
-* libcurl4-openssl-dev
-* libpam0g-dev
+* libcurl
+* pam-dev
 
 ## Basic Instructions to create the .deb
 
