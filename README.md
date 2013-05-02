@@ -67,7 +67,18 @@ This will compile and install both elements of the plugin in
 
 ## Installing/Getting the .deb
 
+Download the
+[deb](https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.0_1.0-1ubuntu1_i386.deb?raw=true)
+and install it with `dpkg -i authy-open-vpn-1.0_1.0-1ubuntu1_i386.deb`
+if you have are a root user or with `sudo dpkg -i
+authy-open-vpn-1.0_1.0-1ubuntu1_i386.deb` if you are in the sudoers
+file
+
 ## Installing/Getting the .rpm
+
+Download the
+[rpm](https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.0-1.el6.x86_64.rpm?raw=true)
+and install it with `rpm -i authy-open-vpn-1.0-1.el6.x86_64.rpm`
 
 ## Configuring OpenVPN
 
