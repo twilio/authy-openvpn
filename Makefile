@@ -28,6 +28,7 @@ $(PAM).so: $(PAM).o
 install: $(LIBNAME).so $(PAM).so
 	mkdir -p $(DESTDIR)$(INSTDIR)
 	cp $(LIBNAME).so $(PAM).so $(DESTDIR)$(INSTDIR)
+	chmod 755 $(DESTDIR)$(INSTDIR)/*.so
 
 clean:
 	rm -f *.o
