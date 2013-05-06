@@ -1,15 +1,7 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
+#include "authy-conf.h"
 #include "openvpn-plugin.h"
 #include "jsmn.h"
 #include "authy_api.h"
-
-#define SUCCESS 0
-#define FAILURE 1
-
-#define AUTHYTOKENSIZE 7
 
 
 /*
@@ -113,24 +105,21 @@ static int
 authenticate(struct plugin_context *context, const char *argv[], const char *envp[])
 {
   int i_status;
-  char *psz_token, *psz_control, *psz_authy_ID, *psz_response;
+  char *psz_token, *psz_control, *psz_response, *psz_common_name, *psz_username;
+  char  psz_authy_ID[20];
   FILE *p_file_auth;
 
   i_status = FAILURE;
-  psz_response   = (char *) calloc(255, sizeof(char));
 
-  /* the common name is the AuthyID, this need to be setted on the
-     client certificate */
-  psz_authy_ID = get_env("common_name", envp);
-  /* the username is the TOKEN to let the user see the typed token */
-  psz_token   = get_env("password", envp);
-  psz_control = get_env("auth_control_file", envp);
-
-  p_file_auth = fopen(psz_control, "w");
-
-  if(!psz_authy_ID || !psz_token || !psz_control)
+  psz_common_name = get_env("common_name", envp);
+  psz_username    = get_env("username", envp);
+  psz_token       = get_env("password", envp);
+  psz_control     = get_env("auth_control_file", envp);
+  psz_response    = (char *) calloc(255, sizeof(char));
+  
+  if(!psz_common_name || !psz_token || !psz_username || !psz_response)
     goto exit;
-
+  
   if(context->b_PAM)
     {
       const int is_token = strlen(psz_token);
@@ -140,6 +129,12 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
         goto exit;
     }
 
+  /* make a better use of envp to set the configuration file */
+  if(get_authy_ID("/etc/authy.conf", psz_username,
+                  psz_common_name, psz_authy_ID) == FAILURE)
+    goto exit;
+  
+  
   if(!(verify((const char *) context->psz_API_url,
               (const char *) context->psz_API_key,
               psz_token, psz_authy_ID, psz_response) == SUCCESS &&
@@ -149,6 +144,8 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   i_status = SUCCESS;
 
  exit:
+
+  p_file_auth = fopen(psz_control, "w");
   /* set the control file to '1' if suceed or to '0' if fail */
   if(i_status != SUCCESS)
     fprintf(p_file_auth, "0");

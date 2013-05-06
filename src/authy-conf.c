@@ -1,21 +1,15 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
+#include "authy-conf.h"
 
-#define SUCCESS 0
-#define FAILURE 1
-
-int
+static int
 recheck_authy_id(char *psz_authy_id)
 {
   int i_authy_id = atoi(psz_authy_id);
-  char sz_authy_id_from_i[8];
-  snprintf(sz_authy_id_from_i, 8, "%.7d", i_authy_id);
+  char sz_authy_id_from_i[20];
+  snprintf(sz_authy_id_from_i, 20, "%d", i_authy_id);
   return strcmp(psz_authy_id, sz_authy_id_from_i);
 }
 
-void remove_spaces(char* source)
+static void remove_spaces(char* source)
 {
   char* i = source;
   char* j = source;
@@ -28,7 +22,7 @@ void remove_spaces(char* source)
   *i = '\0';
 }
 
-int check_username(const char *psz_username)
+static int check_username(const char *psz_username)
 {
   int i_status = FAILURE;
   char *psz_tmp_username = strdup(psz_username);
@@ -54,13 +48,14 @@ get_authy_ID(const char *psz_conf_file_name, const char *psz_username,
 
   char format[80];
 
-  sprintf(format, "%s %%s", psz_username);
+  sprintf(format, "%s %%20s", psz_username);
 
   char line[80];
-  memset(psz_authy_id, 0, 8);
+  memset(psz_authy_id, 0, sizeof psz_authy_id);
 
   /* find the username line in the config file*/
   int b_found_username = 0;
+
   while(b_found_username == 0 && fgets(line, 80, p_conf_file))
     b_found_username |= sscanf(line, format, psz_authy_id);
 
@@ -74,13 +69,12 @@ get_authy_ID(const char *psz_conf_file_name, const char *psz_username,
       and psz_authy_id is pointing to the common_name value
     */
     {
-      if(strcmp(psz_common_name, psz_authy_id))
-        /* the common name doesn't match, gg */
-        goto exit;
-
-      sprintf(format, "%s %s %%s", psz_username, psz_common_name);
-
+      sprintf(format, "%s %s %%20s", psz_username, psz_common_name);
       sscanf(line, format, psz_authy_id);
+
+      if(recheck_authy_id(psz_authy_id))
+        /* the username and common name doesn't match, gg */
+        goto exit;
     }
 
   i_status = SUCCESS;
@@ -89,76 +83,3 @@ get_authy_ID(const char *psz_conf_file_name, const char *psz_username,
   fclose(p_conf_file);
   return i_status;
 }
-
-/* void */
-/* test(int expected, const char *psz_username, */
-/*      const char *psz_common_name, char *expected_authy_id, */
-/*      const char *msg) */
-/* { */
-/*   static int kase = 0; */
-/*   printf("Test Case #%d\n", ++kase); */
-/*   char authy_id[8]; */
-/*   int r = get_authy_ID("sample.conf", psz_username, psz_common_name, */
-/*                        authy_id); */
-/*   if(r != expected) */
-/*     { */
-/*       puts(msg); */
-/*       return; */
-/*     } */
-/*   if(r == 0 && strcmp(expected_authy_id, authy_id) != 0) */
-/*     { */
-/*       puts(msg); */
-/*       return; */
-/*     } */
-/*   puts("runs as expected"); */
-/* } */
-
-/* int main() */
-/* { */
-
-/*   test(1, "\t\r\r\t", "\r\r\t", "so", "this just need to fail"); */
-  
-/*   test(1, NULL, NULL, NULL, "this must be an error if tries to check\ */
-/*   for NULL user"); */
-
-/*   test(1, NULL, NULL, NULL, "this must be an error if tries to check\ */
-/*   for NULL user"); */
-
-/*   test(1, NULL, NULL, NULL, "this must be an error if tries to check\ */
-/*   for NULL user"); */
-
-/*   test(1, "", NULL, NULL, "this must be an error if check for the\ */
-/*   blank user \"\""); */
-
-/*   test(1, " ", NULL, NULL, "this must be an error if check for the\ */
-/*   blank user \" \""); */
-
-/*   test(1, "      ", NULL, NULL, "this must be an error if check for the\ */
-/*   blank user \"      \""); */
-
-/*   test(1, "\t\n", NULL, NULL, "this must be an error if check for the\ */
-/*   blank user \"\\t\\n\""); */
-
-/*   test(1, "\r\n", NULL, NULL, "this must be an error if check for the\ */
-/*   blank user \"\\r\\n\""); */
-
-/*   test(1, "david", "", "", "this must be an error because we don't\ */
-/*   have a david in our configuration file"); */
-
-/*   test(1, "sarcilav", "", "", "this must be an error because sarcilav\ */
-/*   is using a common name in the configuration file"); */
-
-/*   test(0, "sarcilav", "sebastian", "0000013", "this is the line\ */
-/*   sarcilav sebastian 0000013"); */
-
-/*   test(0, "sarciav", "cualquiercosa", "0000012", "this is the line\ */
-/*   sarciav 0000012"); */
-
-/*   test(0, "daniel", "daniel", "0000001", "this is the line daniel\ */
-/*   daniel 0000001"); */
-
-/*   test(1, "daniel", "sdaniel", "", "this must be an error because the\ */
-/*   common name check fails"); */
-
-/*   return 0; */
-/* } */

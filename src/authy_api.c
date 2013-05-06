@@ -71,7 +71,7 @@ register_user(const char *psz_API_url, const char *psz_API_key,
               char *psz_post_fields, char *psz_response)
 {
   int i_res = FAILURE;
-  char *psz_url, *psz_end_point = "/users/new";
+  char *psz_url = NULL, *psz_end_point = "/users/new";
 
   psz_url = (char *) malloc(url_size(psz_API_url, psz_end_point,
                                      psz_API_key));
@@ -93,7 +93,7 @@ verify(const char *psz_API_url, const char *psz_API_key,
        char *psz_token, char *psz_authy_ID, char *psz_response)
 {
   int i_res = FAILURE;
-  char *psz_url, *psz_end_point;
+  char *psz_url = NULL, *psz_end_point = NULL;
 
   psz_end_point = (char *) malloc(strlen("/verify/") + strlen(psz_token)
                                   + strlen("/") +
@@ -108,6 +108,7 @@ verify(const char *psz_API_url, const char *psz_API_key,
 
   if(!psz_url)
     goto exit;
+
   url_builder(psz_API_url, psz_API_key, psz_end_point, psz_url);
 
   i_res = request(psz_url, NULL, psz_response);
@@ -124,7 +125,7 @@ request_sms(const char *psz_API_url, const char *psz_API_key,
             char *psz_authy_ID, char *psz_response)
 {
   int i_res = FAILURE;
-  char *psz_url, *psz_end_point;
+  char *psz_url = NULL, *psz_end_point = NULL;
 
   psz_end_point = (char *) malloc(strlen("/sms/") +
                                   strlen(psz_authy_ID));
