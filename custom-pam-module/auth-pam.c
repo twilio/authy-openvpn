@@ -553,6 +553,9 @@ my_conv (int n, const struct pam_message **msg_array,
 
   *response_array = NULL;
 
+  if (n <= 0 || n > PAM_MAX_NUM_MSG)
+    return (PAM_CONV_ERR);
+
   if(msg_array[0]->msg_style == 1)
     /* msg_style = 1 means that PAM is querying for the password, this
        works for PAM = "login login USERNAME password PASSWORD"
@@ -572,8 +575,6 @@ my_conv (int n, const struct pam_message **msg_array,
         return PAM_CONV_ERR;
     }
 
-  if (n <= 0 || n > PAM_MAX_NUM_MSG)
-    return (PAM_CONV_ERR);
   if ((aresp = calloc (n, sizeof *aresp)) == NULL)
     return (PAM_BUF_ERR);
 
