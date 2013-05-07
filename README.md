@@ -1,3 +1,87 @@
+# Authy Open VPN Quick Start
+
+## Pre-requisites
+
+1. Authy API Key: https://www.authy.com/signup
+2. An OpenVPN installation ([How To](http://openvpn.net/index.php/open-source/documentation/howto.html))
+3. Your box must have the development toolchain (gcc, make ..) and
+development  headers for curl and pam (for compilation)
+4. You are ready to rumble!
+
+## Quick Installation
+
+### Getting the plugin
+
+#### Debian based systems (as root)
+
+	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.0_1.0-1ubuntu1_i386.deb?raw=true'	-o authy-openvpn.deb
+	dpkg -i authy-openvpn.deb
+
+#### Debian based systems (with sudo). Ubuntu
+
+	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.0_1.0-1ubuntu1_i386.deb?raw=true'	-o authy-openvpn.deb
+	sudo dpkg -i authy-openvpn.deb
+
+#### Red Hat based systems
+
+	curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.0-1.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
+	rpm -i authy-openvpn.rpm
+
+### Configuring OpenVPN to use the plugin
+
+	echo "plugin /usr/lib/authy/authy-openvpn.so https://api.authy.com/protected/json AUTHY_API_KEY" >> /etc/openvpn/server.conf
+
+Replace `AUTHY_API_KEY` with you key
+
+### Restarting you server
+
+#### Ubuntu
+
+	sudo service openvpn restart
+
+#### Debian
+
+	/etc/init.d/openvpn restart
+    
+#### Red Hat and Fedora Core Linux
+
+	/sbin/service openvpn restart
+    
+### Creating the /etc/authy.conf
+
+Before start you will need to add to yours client configuration
+(`client.conf`)
+
+	auth-user-pass
+
+The `authy.conf` file is needed to match the openvpn users with the
+Authy ID.
+
+For example if you aren't using user/pass, you can start using your
+companies email as username and the authy token as password.
+
+Giving this case the `authy.conf` will look like:
+
+	user1@mycompany.com 1234
+	user2@mycompany.com 1235
+	.
+	.
+	.
+	usern@mycompany.com 9999
+
+If you are also using the common name to identify your clients
+certificates to assign network groups, we can also check that the
+username match with it. And the `authy.conf` will look like:
+
+	user1@mycompany.com CN1 1234
+	user2@mycompany.com CN2 1235
+	.
+	.
+	.
+	usern@mycompany.com CNn 9999
+
+
+
 # Authy Open VPN
 
  Authy Open VPN provides two plugins for OpenVpn:
@@ -8,35 +92,17 @@
    
  * The Second one is `pam.so` that is the complementary plugin that
    you could use with the auth-openvpn plugin, to use cert +
-   user/pass + token to authenticate users to your vpn.
+   PAM user/pass + token to authenticate users to your vpn.
    
 ## Important things to know before you use this plugin
 
-This plugin uses client certificates in which the CN (Common Name) is
-equal to the Authy ID of the users. So this implies the regeneration
-of yours clients/users certificates.
-
-It is also important to know that while you are regenerating the
-certificates, you will need to input the Authy ID in the CN field for
-the specific client (Note that this means that the admin will need to
-register the users in advance, this is needed because openvpn doesn't
-use an enrollment interface).
-
 Authy will use the password field of the openvpn interface by default
 to let the users input their tokens, when this plugin is used together
-with the pam module, it will let the users use the username field for
+with the PAM module, it will let the users use the username field for
 the pam porpouse and the password field will be the concatenation of
 the PAM password with the Authy Token. For example a user with
 username/password joe/pass and Authy Token 1234567 will input in the
 username joe and in the password field pass1234567
-
-# Installation
-
-There are 3 options:
-
-1.  Build the plugin from the source code.
-2.  Use the debian package (.deb).
-3.  Use the red hat package (.rpm).
 
 ## Building the plugin from the source code
 
@@ -65,20 +131,6 @@ The other option is to run as root
 This will compile and install both elements of the plugin in
 `/usr/lib/authy`
 
-## Installing/Getting the .deb
-
-Download the
-[deb](https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.0_1.0-1ubuntu1_i386.deb?raw=true)
-and install it with `dpkg -i authy-open-vpn-1.0_1.0-1ubuntu1_i386.deb`
-if you have are a root user or with `sudo dpkg -i
-authy-open-vpn-1.0_1.0-1ubuntu1_i386.deb` if you are in the sudoers
-file
-
-## Installing/Getting the .rpm
-
-Download the
-[rpm](https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.0-1.el6.x86_64.rpm?raw=true)
-and install it with `rpm -i authy-open-vpn-1.0-1.el6.x86_64.rpm`
 
 ## Configuring OpenVPN
 
