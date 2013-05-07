@@ -1,13 +1,13 @@
 Source: authy-open-vpn
 Priority: extra
-Maintainer: Sebastian Arcila Valenzuela <sebastian@authy.com>
+Maintainer: Sebastian Arcila Valenzuela (sarcilav) <sebastian@authy.com>
 Build-Depends: debhelper (>= 8.0.0), libc6, libcurl4-openssl-dev, libpam0g-dev, locales
 Standards-Version: 3.9.3
 Section: utils
 Vcs-Git: git://github.com/authy/authy-open-vpn.git
 Vcs-Browser: https://github.com/authy/authy-open-vpn
 
-Package: authy-open-vpn-1.0
+Package: authy-open-vpn-1.1
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Authy Open VPN Two-Factor Authentication
