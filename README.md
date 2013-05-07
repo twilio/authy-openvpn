@@ -106,9 +106,6 @@ username joe and in the password field pass1234567
 
 ## Building the plugin from the source code
 
-Your environment needs to satisfy the list of
-[dependencies](#dependencies) before you proceed to the compilation
-
 You can download the code from
 [GitHub](https://github.com/authy/authy-open-vpn/archive/master.zip)
 or clone with `git clone https://github.com/authy/authy-open-vpn.git`
@@ -160,11 +157,6 @@ the case you want to use the pam module you should set that param to
 YOUR_PAM should be something like "login login USERNAME password
 PASSWORD" it will usually work with any other module
 
-## Dependencies
-
-* libc6
-* libcurl
-* pam-dev
 
 ## Basic Instructions to create the .deb
 
