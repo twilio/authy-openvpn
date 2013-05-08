@@ -14,12 +14,12 @@ development  headers for curl and pam (for compilation)
 
 #### Debian based systems (as root)
 
-	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.0_1.0-1ubuntu1_i386.deb?raw=true'	-o authy-openvpn.deb
+	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.1_1.1-1ubuntu1_i386.deb?raw=true'	-o authy-openvpn.deb
 	dpkg -i authy-openvpn.deb
 
 #### Debian based systems (with sudo). Ubuntu
 
-	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.0_1.0-1ubuntu1_i386.deb?raw=true'	-o authy-openvpn.deb
+	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1._1.0-1ubuntu1_i386.deb?raw=true' -o authy-openvpn.deb
 	sudo dpkg -i authy-openvpn.deb
 
 #### Red Hat based systems
