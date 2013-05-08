@@ -9,59 +9,65 @@
 
 ## Quick Installation
 
-### Getting the plugin
+### From source
 
-#### Debian based systems (as root)
+	curl `https://codeload.github.com/authy/authy-open-vpn/zip/master` -o authy-openvpn.zip && tar -zxvf authy-openvpn.zip
+	cd authy-open-vpn-master
+	sudo make install
 
-	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.1_1.1-1ubuntu1_i386.deb?raw=true'	-o authy-openvpn.deb
-	dpkg -i authy-openvpn.deb
+Get your free Authy API KEY from https://www.authy.com/signup .
 
-#### Debian based systems (with sudo). Ubuntu
+Finally configure the plugin.  
+
+	sudo ./postinstall
+
+### Using Ubuntu and Debian packages
 
 	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.1_1.1-1ubuntu1_i386.deb?raw=true'	-o authy-openvpn.deb
 	sudo dpkg -i authy-openvpn.deb
 
-#### Red Hat based systems
+### CentOS and RedHat based systems
 
 	curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.1-1.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
 	rpm -i authy-openvpn.rpm
-
-### Configuring OpenVPN to use the plugin
-
-After the installation on debian based system you will just need to
-follow the postinstall script.
-
-On redhat based system you will need to manually run the postinstall
-script
-
 	bash /usr/lib/authy/postinstall
 
-### Restarting you server
+## Restarting your server
 
-#### Ubuntu
+### Ubuntu
 
 	sudo service openvpn restart
 
-#### Debian
+### Debian
 
 	/etc/init.d/openvpn restart
     
-#### Red Hat and Fedora Core Linux
+### CentOS and RedHat
 
 	/sbin/service openvpn restart
-    
-### Creating the /etc/authy.conf
 
-Before start you will need to add to yours client configuration
-(`client.conf`) the following line
+## How it works
+
+If you were using certificates you won't need to regenerate your
+certificates or avoid the use of these.
+
+Authy plugin intercepts the auth user pass verification, to add the
+TWO Factor authentication, and for this you will need to ask to your
+users to add
 
 	auth-user-pass
 
+to their client configuration, that is usually `client.conf`. This
+line is to force the prompt of username/password within the different
+clients.
+
+For example if you aren't using user/pass or PAM, you can start using
+your companies email as username and the authy token as password.
+
+### /etc/authy.conf
+
 The `/etc/authy.conf` file is needed to match the openvpn users with the
 Authy ID.
-
-For example if you aren't using user/pass, you can start using your
-companies email as username and the authy token as password.
 
 Giving this case the `/etc/authy.conf` will look like:
 
@@ -72,10 +78,11 @@ Giving this case the `/etc/authy.conf` will look like:
 	.
 	usern@mycompany.com AUTHY_IDN
 
-If you are also using the common name to identify your clients
-certificates to assign network groups or any other configuration that
-checks the common name, we can also check that the username match with
-it. And the `/etc/authy.conf` will look like:
+If you are also using the common name in the client certificates  to
+identify your clients certificates to assign network groups or any
+other configuration that checks the common name, we can also check
+that the username match with it. And the `/etc/authy.conf` will look
+like:
 
 	user1@mycompany.com CN1 AUTHY_ID1
 	user2@mycompany.com CN2 AUTHY_ID2
@@ -84,63 +91,40 @@ it. And the `/etc/authy.conf` will look like:
 	.
 	usern@mycompany.com CNn AUTHY_IDN
 
+For these cases the user `user1@mycompany.com` when asked for
+username/password at the client interface will input
+`user1@mycompany.com` in the username field and an authy token in the
+password field.
 
+### Authy plugin with PAM
 
-# Authy Open VPN
+If you were using PAM before you can still use authy two factor
+authentication.
 
- Authy Open VPN provides two plugins for OpenVpn:
- 
- * The First one is `authy-openvpn.so` that is the basic plugin that
-   uses the API of authy.com to only use client cert + authy token to
-   authenticate users to your vpn.
-   
- * The Second one is `pam.so` that is the complementary plugin that
-   you could use with the auth-openvpn plugin, to use cert +
-   PAM user/pass + token to authenticate users to your vpn.
-   
-## Important things to know before you use this plugin
+Note: It is important to know that you can easily setup the pam integration
+just answering that you are going to use PAM in the postinstall script
 
-Authy will use the password field of the openvpn interface by default
-to let the users input their tokens, when this plugin is used together
-with the PAM module, it will let the users use the username field for
-the pam porpouse and the password field will be the concatenation of
-the PAM password with the Authy Token. For example a user with
-username/password joe/pass and Authy Token 1234567 will input in the
-username joe and in the password field pass1234567
+For example you have the following user `joe` with password equal to
+`superpass` and you start using the Authy plugin, he will just need to
+change one thing in the authentication workflow, for username he will
+keep inputting `joe` but in the password field he will need to
+concatenate his password with his current authy token, inputting
+something like `superpass1234567` where `1234567` is his current
+token.
 
-## Building the plugin from the source code
+For this case your `/etc/authy.conf` will look like:
 
-You can download the code from
-[GitHub](https://github.com/authy/authy-open-vpn/archive/master.zip)
-or clone with `git clone https://github.com/authy/authy-open-vpn.git`
+	joe AUTHY_ID_OF_JOE
 
-Once you have the code in your local machine and your working
-directory is pointing where your downloaded the code
+And if you need to verify that joe's common name from the certificates
+match. It will look like:
 
-	make
+	joe COMMON_NAME_OF_JOE
 
-This will compile the plugin an generate the following shared objects
-`authy-openvpn.so` and `pam.so`, once you have the plugin object you
-can install wherever you want, just remember where do you install the
-plugins because you will need that later to config the plugins withing
-the server configuration of the vpn.
+# Last and very important
 
-The other option is to run as root
-
-	make install
-
-This will compile and install both elements of the plugin in
-`/usr/lib/authy`
-
-
-## Configuring OpenVPN
-
-
-Run the `postinstall` script it will help you through the
-configuration
-
-	sudo ./postinstall
-
+You as an openvpn admin will need to create your users in advance
+within the Authy Dashboard.
 
 ## Basic Instructions to create the .deb
 
