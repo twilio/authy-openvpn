@@ -114,10 +114,12 @@ field. EG.
 ## Adding your first user
 
 This section will show how to properly setup Two-Factor Authentication
-on one of your users. You can repeat this process for all of them. If
-you have many of them you can script it.
+on one of your users.
 
-1. Go to [Authy Dashboard](https://)
+The Authy plugin comes with a script to help with the users
+registration and creation of the authy-vpn.conf
+
+    sudo authy_vpn_add_users
 
 
 
@@ -125,7 +127,7 @@ you have many of them you can script it.
 And if you need to verify that joe's common name from the certificates
 match. It will look like:
 
-	joe COMMON_NAME_OF_JOE
+	joe COMMON_NAME_OF_JOE AUTHY_ID_OF_JOE
 
 
 	auth-user-pass

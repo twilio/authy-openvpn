@@ -130,7 +130,7 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
     }
 
   /* make a better use of envp to set the configuration file */
-  if(get_authy_ID("/etc/authy.conf", psz_username,
+  if(get_authy_ID("/etc/authy-vpn.conf", psz_username,
                   psz_common_name, psz_authy_ID) == FAILURE)
     goto exit;
   

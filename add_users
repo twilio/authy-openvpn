@@ -1,0 +1,155 @@
+#!/bin/bash
+# This script is based on
+# https://github.com/authy/authy-ssh/blob/master/authy-ssh
+
+VERSION="1.0"
+AUTHY_URL="https://api.authy.com"
+CONFIG_FILE="/etc/authy-vpn.conf"
+OPENVPN_FILE="/etc/openvpn/server.conf"
+
+export TERM="xterm-256color"
+NORMAL=$(tput sgr0)
+GREEN=$(tput setaf 2; tput bold)
+YELLOW=$(tput setaf 3)
+RED=$(tput setaf 1)
+
+function red() {
+    echo -e "$RED$*$NORMAL"
+}
+
+function green() {
+    echo -e "$GREEN$*$NORMAL"
+}
+
+function yellow() {
+    echo -e "$YELLOW$*$NORMAL"
+}
+
+function require_curl() {
+    which curl 2>&1 > /dev/null
+    if [ $? -eq 0 ]
+    then
+        return 0
+    fi
+
+    # if `which` is not installed this check is ran
+    curl --help 2>&1 > /dev/null
+
+    if [ $? -ne 0 ]
+    then
+        red "install curl and try again"
+        exit 1
+    fi
+}
+
+function check_api_key() {
+    if [[ $AUTHY_API_KEY == "replace_me" || ! $AUTHY_API_KEY ]]
+    then
+        red "Cannot find a valid api key"
+        exit 1
+    fi
+}
+
+# usage: register_user "login" "<email>" "<country-code>" "<cellphone>"
+function register_user() {
+    local login=$1
+    url="$AUTHY_URL/protected/json/users/new?api_key=${AUTHY_API_KEY} -d user[email]=$2 -d user[country_code]=$3 -d user[cellphone]=$4 -s"
+
+    response=`curl ${url} 2>/dev/null`
+    ok=true
+
+    if [[ $response == *cellphone* ]]
+    then
+        yellow "Cellphone is invalid"
+        ok=false
+    fi
+
+    if [[ $response == *email* ]]
+    then
+        yellow "Email is invalid"
+        ok=false
+    fi
+
+    if [[ $ok == false ]]
+    then
+        exit 1
+    fi
+
+    if [[ $response == *user*id* ]]
+    then
+        user_id=`echo $response | grep -o '[0-9]\{1,\}'` # match the authy id
+        if [[ $user_id ]]
+        then
+            echo "$login $user_id" >> $CONFIG_FILE
+            green "User was registered"
+        else
+            red "Cannot register user: $response"
+        fi
+    elif [[ $response == "invalid key" ]]
+    then
+        yellow "The api_key value is not valid"
+    else
+        red "Unknown response: $response"
+    fi
+}
+
+function read_config()
+{
+    if [[ ! -f $OPENVPN_FILE ]]
+    then
+        red "ERROR: $OPENVPN_FILE couldn't be found"
+    fi
+
+    while IFS=' ' read -r plugin plugin_name api_url api_key pam
+    do
+        if [[ $plugin == "plugin" && $plugin_name == *"authy-openvpn.so" && $api_url == *"authy.com"* ]]
+        then
+            echo $api_key
+            return 0
+        fi
+    done < $OPENVPN_FILE
+    return 1
+}
+function register_users()
+{
+    echo "This script is to add users to Authy Open VPN"
+    echo "For each user you will need to provide login, email, country code and cellphone"
+
+    echo -n "Login: "
+    read login
+
+    until [[ -z $login ]] ; do
+        echo -n "Email: "
+        read email
+
+        echo -n "Country Code (EG. 1 for US): "
+        read country_code
+
+        echo -n "Cellphone: "
+        read cellphone
+
+        register_user $login $email $country_code $cellphone
+
+        echo -n "Login (let it blank if you don't want to add more users): "
+        read login
+    done
+}
+
+
+# cd - >/dev/null
+
+AUTHY_API_KEY="$(read_config)"
+if [ $? -ne 0 ] ; then
+    exit 1
+fi
+
+touch $CONFIG_FILE
+if [ $? -ne 0 ] ; then
+    exit 1
+fi
+chown root $CONFIG_FILE
+chmod 600  $CONFIG_FILE
+
+check_api_key
+register_users
+

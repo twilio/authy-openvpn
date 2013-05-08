@@ -1,5 +1,5 @@
 #!/bin/bash
-#This command need to be called like ./postinstall DESTDIR=/usr/lib/authy
+#This command need to be called like ./postinstall
 
 function add_configuration {
     local conf_file=$1
