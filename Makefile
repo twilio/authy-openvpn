@@ -29,6 +29,7 @@ install: $(LIBNAME).so $(PAM).so
 	mkdir -p $(DESTDIR)$(INSTDIR)
 	cp $(LIBNAME).so $(PAM).so $(DESTDIR)$(INSTDIR)
 	chmod 755 $(DESTDIR)$(INSTDIR)/*.so
+	mkdir -p $(DESTDIR)/usr/sbin
 	cp add_users $(DESTDIR)/usr/sbin/authy_vpn_add_users
 	chown root $(DESTDIR)/usr/sbin/authy_vpn_add_users
 	chmod 700 $(DESTDIR)/usr/sbin/authy_vpn_add_users

@@ -1,6 +1,7 @@
-authy-open-vpn (1.1-1ubuntu1) UNRELEASED; urgency=low
+authy-open-vpn (2.0-ubuntu) UNRELEASED; urgency=low
 
   * Initial release
   * Remove common name dependency
+  * Add script that registers users and creates authy-vpn.conf
 
- -- Sebastian Arcila Valenzuela (sarcilav) <sebastian@authy.com>  Tue, 7 May 2013 14:29:04 -0500
+ -- Sebastian Arcila Valenzuela (sarcilav) <sebastian@authy.com>  Wed, 8 May 2013 16:45:04 -0500
