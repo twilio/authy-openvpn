@@ -54,35 +54,36 @@ script
 ### Creating the /etc/authy.conf
 
 Before start you will need to add to yours client configuration
-(`client.conf`)
+(`client.conf`) the following line
 
 	auth-user-pass
 
-The `authy.conf` file is needed to match the openvpn users with the
+The `/etc/authy.conf` file is needed to match the openvpn users with the
 Authy ID.
 
 For example if you aren't using user/pass, you can start using your
 companies email as username and the authy token as password.
 
-Giving this case the `authy.conf` will look like:
+Giving this case the `/etc/authy.conf` will look like:
 
-	user1@mycompany.com 1234
-	user2@mycompany.com 1235
+	user1@mycompany.com AUTHY_ID1
+	user2@mycompany.com AUTHY_ID2
 	.
 	.
 	.
-	usern@mycompany.com 9999
+	usern@mycompany.com AUTHY_IDN
 
 If you are also using the common name to identify your clients
-certificates to assign network groups, we can also check that the
-username match with it. And the `authy.conf` will look like:
+certificates to assign network groups or any other configuration that
+checks the common name, we can also check that the username match with
+it. And the `/etc/authy.conf` will look like:
 
-	user1@mycompany.com CN1 1234
-	user2@mycompany.com CN2 1235
+	user1@mycompany.com CN1 AUTHY_ID1
+	user2@mycompany.com CN2 AUTHY_ID2
 	.
 	.
 	.
-	usern@mycompany.com CNn 9999
+	usern@mycompany.com CNn AUTHY_IDN
 
 
 
