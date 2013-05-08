@@ -20,43 +20,39 @@ _For hardware dongles and phone calls please contact sales@authy.com_
 
 1. Compile and install
 
-    curl `https://codeload.github.com/authy/authy-open-vpn/zip/master` -o authy-openvpn.zip && tar -zxvf authy-openvpn.zip
-    cd authy-open-vpn-master
-    sudo make install
+        curl `https://codeload.github.com/authy/authy-open-vpn/zip/master` -o authy-openvpn.zip && tar -zxvf authy-openvpn.zip
+        cd authy-open-vpn-master
+        sudo make install
 
 2. Get your free Authy API KEY from https://www.authy.com/signup .
 
 3. Finally configure the plugin.  
 
-	sudo ./postinstall
+        sudo ./postinstall
 
 ### Using Ubuntu and Debian packages
 
 1. Download the deb package.
 
- 	curl
-	'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.1_1.1-1ubuntu1_i386.deb?raw=true'
-	-o authy-openvpn.deb
+        curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.1_1.1-1ubuntu1_i386.deb?raw=true' -o authy-openvpn.deb
 
 2. Install package.
 
-	sudo dpkg -i authy-openvpn.deb
+        sudo dpkg -i authy-openvpn.deb
 
 ### CentOS and RedHat based systems
 
 1. Download the rpm package.
 
-    curl
-    'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.1-1.el6.x86_64.rpm?raw=true'
-    -o authy-openvpn.rpm
+        curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.1-1.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
 
 2. Install package.
 
-	rpm -i authy-openvpn.rpm
+        rpm -i authy-openvpn.rpm
 
 3. Finally configure the plugin.
 
-    bash /usr/lib/authy/postinstall
+        bash /usr/lib/authy/postinstall
 
 ### Restarting your server
 
