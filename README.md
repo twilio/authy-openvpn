@@ -19,19 +19,23 @@ development  headers for curl and pam (for compilation)
 
 #### Debian based systems (with sudo). Ubuntu
 
-	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1._1.0-1ubuntu1_i386.deb?raw=true' -o authy-openvpn.deb
+	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.1_1.1-1ubuntu1_i386.deb?raw=true'	-o authy-openvpn.deb
 	sudo dpkg -i authy-openvpn.deb
 
 #### Red Hat based systems
 
-	curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.0-1.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
+	curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.1-1.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
 	rpm -i authy-openvpn.rpm
 
 ### Configuring OpenVPN to use the plugin
 
-	echo "plugin /usr/lib/authy/authy-openvpn.so https://api.authy.com/protected/json AUTHY_API_KEY" >> /etc/openvpn/server.conf
+After the installation on debian based system you will just need to
+follow the postinstall script.
 
-Replace `AUTHY_API_KEY` with you key
+On redhat based system you will need to manually run the postinstall
+script
+
+	bash /usr/lib/authy/postinstall
 
 ### Restarting you server
 
@@ -131,31 +135,11 @@ This will compile and install both elements of the plugin in
 
 ## Configuring OpenVPN
 
-At the end of the `server.conf` (it is usually at
-`/etc/openvpn/server.conf`) or the plugins section you will need to
-add the following line
 
-	plugin /INSTALLATIONDIR/authy-openvpn.so APIURL APIKEY PAM
+Run the `postinstall` script it will help you through the
+configuration
 
-where:
-
-INSTALLATIONDIR is usually /usr/lib/authy if you used `make install`
-or one of the default packages (.deb or .rpm)
-
-APIURL is https://api.authy.com/protected/json or
-http://sandbox-api.authy.com/protected/json
-
-APIKEY is your API Key something like d57d919d11e6b221c9bf6f7c882028f9
-
-PAM should be `nopam` or `pam`, it is `nopam` by default so if you
-decided to don't use the pam module you can avoid that param. Given
-the case you want to use the pam module you should set that param to
-`pam` and add
-
-	plugin /INSTALLATIONDIR/pam.so YOUR_PAM
-
-YOUR_PAM should be something like "login login USERNAME password
-PASSWORD" it will usually work with any other module
+	sudo ./postinstall
 
 
 ## Basic Instructions to create the .deb
