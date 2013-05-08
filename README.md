@@ -1,65 +1,140 @@
-# Authy Open VPN Quick Start
+# Authy Open VPN
 
-## Pre-requisites
+With Authy OpenVPN plugin you can add Two-Factor Authentication to
+your vpn server in just minutes. This plugin supports certificate based
+authentication or/and PAM.  
 
-1. Authy API Key: https://www.authy.com/signup
-2. An OpenVPN installation ([How To](http://openvpn.net/index.php/open-source/documentation/howto.html))
-3. (For compilation) Your box must have the development toolchain
-(gcc, make ..) and development  headers for curl and pam
+With Authy your users can authenticate using Authy mobile app, SMS,
+phone calls or a hardware dongle.
+
+_For hardware dongles and phone calls please contact sales@authy.com_
+
+## Pre-Requisites
+
+1. Authy API Key. Get one free at: https://www.authy.com/signup
+2. OpenVPN installation ([How To](http://openvpn.net/index.php/open-source/documentation/howto.html))
 
 ## Quick Installation
 
-### From source
+### Using source code
 
-	curl `https://codeload.github.com/authy/authy-open-vpn/zip/master` -o authy-openvpn.zip && tar -zxvf authy-openvpn.zip
-	cd authy-open-vpn-master
-	sudo make install
+1. Compile and install
 
-Get your free Authy API KEY from https://www.authy.com/signup .
+    curl `https://codeload.github.com/authy/authy-open-vpn/zip/master` -o authy-openvpn.zip && tar -zxvf authy-openvpn.zip
+    cd authy-open-vpn-master
+    sudo make install
 
-Finally configure the plugin.  
+2. Get your free Authy API KEY from https://www.authy.com/signup .
+
+3. Finally configure the plugin.  
 
 	sudo ./postinstall
 
 ### Using Ubuntu and Debian packages
 
-	curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.1_1.1-1ubuntu1_i386.deb?raw=true'	-o authy-openvpn.deb
+1. Download the deb package.
+
+ 	curl
+	'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.1_1.1-1ubuntu1_i386.deb?raw=true'
+	-o authy-openvpn.deb
+
+2. Install package.
+
 	sudo dpkg -i authy-openvpn.deb
 
 ### CentOS and RedHat based systems
 
-	curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.1-1.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
+1. Download the rpm package.
+
+    curl
+    'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.1-1.el6.x86_64.rpm?raw=true'
+    -o authy-openvpn.rpm
+
+2. Install package.
+
 	rpm -i authy-openvpn.rpm
-	bash /usr/lib/authy/postinstall
 
-## Restarting your server
+3. Finally configure the plugin.
 
-### Ubuntu
+    bash /usr/lib/authy/postinstall
+
+### Restarting your server
+
+#### Ubuntu
 
 	sudo service openvpn restart
 
-### Debian
+#### Debian
 
 	/etc/init.d/openvpn restart
     
-### CentOS and RedHat
+#### CentOS and RedHat
 
 	/sbin/service openvpn restart
 
-## How it works
+## How Authy VPN works
 
-If you were using certificates you won't need to regenerate your
-certificates or avoid the use of these.
+### Certificates based Auth
 
-Authy plugin intercepts the auth user pass verification, to add the
-TWO Factor authentication, and for this you will need to ask to your
-users to add
+In this scenario user needs: username + certificate + token to login.
+
+If you are already using certificates to authenticate your vpn users you won't
+need to regenerate them. Authy uses a authy-vpn.conf were you tell
+authy the users login and the AUTHY_ID.
+
+##### Example authy-vpn.conf for a user with AUTHY_ID 10229
+
+    user1@company.com 10229
+
+Here the user will enter `user1@company.com` as username and the
+Token(which he gets from the app or SMS) as the password. The
+certificate is transparently checked before this happens.  
+
+### Authy plugin with PAM
+
+If you are using PAM before you can still use authy Two-Factor
+Authentication.
+
+To use PAM simply answer that you are going to use PAM during the
+postinstall script.
+
+
+##### Example authy-vpn.conf for a user joe with AUTHY_ID 10229
+
+    joe 10229
+
+Here joe is the PAM login username.
+
+Let's suppose joe password is `god`. So the user will enter `joe` as
+username, and the password concatenated with the token in the password
+field. EG.
+
+    username:joe
+    password:god1234567
+
+`1234567` would be the Token.
+
+
+## Adding your first user
+
+This section will show how to properly setup Two-Factor Authentication
+on one of your users. You can repeat this process for all of them. If
+you have many of them you can script it.
+
+1. Go to [Authy Dashboard](https://)
+
+
+
+
+And if you need to verify that joe's common name from the certificates
+match. It will look like:
+
+	joe COMMON_NAME_OF_JOE
+
 
 	auth-user-pass
 
-to their client configuration, that is usually `client.conf`. This
-line is to force the prompt of username/password within the different
-clients.
+
 
 For example if you aren't using user/pass or PAM, you can start using
 your companies email as username and the authy token as password.
@@ -96,35 +171,11 @@ username/password at the client interface will input
 `user1@mycompany.com` in the username field and an authy token in the
 password field.
 
-### Authy plugin with PAM
-
-If you were using PAM before you can still use authy two factor
-authentication.
-
-Note: It is important to know that you can easily setup the pam integration
-just answering that you are going to use PAM in the postinstall script
-
-For example you have the following user `joe` with password equal to
-`superpass` and you start using the Authy plugin, he will just need to
-change one thing in the authentication workflow, for username he will
-keep inputting `joe` but in the password field he will need to
-concatenate his password with his current authy token, inputting
-something like `superpass1234567` where `1234567` is his current
-token.
-
-For this case your `/etc/authy.conf` will look like:
-
-	joe AUTHY_ID_OF_JOE
-
-And if you need to verify that joe's common name from the certificates
-match. It will look like:
-
-	joe COMMON_NAME_OF_JOE
 
 # Last and very important
 
 You as an openvpn admin will need to create your users in advance
-within the Authy Dashboard.
+within the Authy Dashboard
 
 ## Basic Instructions to create the .deb
 
