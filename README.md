@@ -4,9 +4,8 @@
 
 1. Authy API Key: https://www.authy.com/signup
 2. An OpenVPN installation ([How To](http://openvpn.net/index.php/open-source/documentation/howto.html))
-3. Your box must have the development toolchain (gcc, make ..) and
-development  headers for curl and pam (for compilation)
-4. You are ready to rumble!
+3. (For compilation) Your box must have the development toolchain
+(gcc, make ..) and development  headers for curl and pam
 
 ## Quick Installation
 
