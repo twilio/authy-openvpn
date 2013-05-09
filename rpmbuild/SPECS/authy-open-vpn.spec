@@ -1,9 +1,9 @@
 %define name authy-open-vpn
-%define version 1.1
+%define version 2.0
 
 Name:           %{name}
 Version:        %{version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Authy Open VPN Two-Factor Authentication
 
 Group:          System Environment/Libraries
@@ -48,10 +48,10 @@ echo "Remember to run \"bash $RPM_BUILD_ROOT/usr/lib/authy/postinstall\" for con
 /usr/lib/authy/authy-openvpn.so
 /usr/lib/authy/pam.so
 /usr/lib/authy/postinstall
-
+/usr/sbin/authy_vpn_add_users
 
 %changelog
-* Thu May 2 2013 Sebastian Arcila Valenzuela (sarcilav) <sebastian at authy.com> - 1.1-1
-- Initial release
+* Wed May 8 2013 Sebastian Arcila Valenzuela (sarcilav) <sebastian at authy.com> - 2.0-2
+- Release 2.0
 
 
