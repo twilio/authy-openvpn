@@ -34,7 +34,7 @@ _For hardware dongles and phone calls please contact sales@authy.com_
 
 1. Download the deb package.
 
-        curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-1.1_1.1-1ubuntu1_i386.deb?raw=true' -o authy-openvpn.deb
+        curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.0_2.0-ubuntu_i386.deb?raw=true' -o authy-openvpn.deb
 
 2. Install package.
 
@@ -44,7 +44,7 @@ _For hardware dongles and phone calls please contact sales@authy.com_
 
 1. Download the rpm package.
 
-        curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-1.1-1.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
+        curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-2.0-2.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
 
 2. Install package.
 
@@ -122,7 +122,7 @@ registration and creation of the authy-vpn.conf
     sudo authy_vpn_add_users
 
 
-
+# Pending of proofreading
 
 And if you need to verify that joe's common name from the certificates
 match. It will look like:
