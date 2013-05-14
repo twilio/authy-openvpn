@@ -1,5 +1,9 @@
 #include "authy-conf.h"
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
 static int
 recheck_authy_id(char *psz_authy_id)
 {
