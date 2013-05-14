@@ -1,3 +1,17 @@
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#define AUTHYVPNCONF "authy-vpn.conf"
+#pragma comment(lib, "ws2_32.lib")
+
+#else
+#define AUTHYVPNCONF "/etc/authy-vpn.conf"
+#endif 
+
+
 #include "authy-conf.h"
 #include "openvpn-plugin.h"
 #include "jsmn.h"
@@ -116,10 +130,10 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   psz_token       = get_env("password", envp);
   psz_control     = get_env("auth_control_file", envp);
   psz_response    = (char *) calloc(255, sizeof(char));
-  
+
   if(!psz_common_name || !psz_token || !psz_username || !psz_response)
     goto exit;
-  
+
   if(context->b_PAM)
     {
       const int is_token = strlen(psz_token);
@@ -130,11 +144,11 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
     }
 
   /* make a better use of envp to set the configuration file */
-  if(get_authy_ID("/etc/authy-vpn.conf", psz_username,
+  if(get_authy_ID(AUTHYVPNCONF, psz_username,
                   psz_common_name, psz_authy_ID) == FAILURE)
     goto exit;
-  
-  
+
+
   if(!(verify((const char *) context->psz_API_url,
               (const char *) context->psz_API_key,
               psz_token, psz_authy_ID, psz_response) == SUCCESS &&
