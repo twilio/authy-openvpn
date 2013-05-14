@@ -50,6 +50,9 @@ get_authy_ID(const char *psz_conf_file_name, const char *psz_username,
 
   FILE *p_conf_file = fopen(psz_conf_file_name, "r");
 
+  if(!p_conf_file)
+    goto exit;
+  
   char format[80];
 
   sprintf(format, "%s %%20s", psz_username);
