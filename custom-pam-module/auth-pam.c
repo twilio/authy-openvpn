@@ -563,7 +563,7 @@ my_conv (int n, const struct pam_message **msg_array,
 
     {
       /* split the password and remove the token */
-      const int size = strlen(up->password);
+      const size_t size = strlen(up->password);
       if(size > AUTHYTOKENSIZE)
         /* if it is less than 7 the user isn't concatenating */
         {
