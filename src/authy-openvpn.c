@@ -152,6 +152,8 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   else
     fprintf(p_file_auth, "1");
 
+  memset(psz_token, 0, (strlen(psz_token))); /* Avoid to letf some
+  sensible bits */
   fclose(p_file_auth);
   free(psz_response);
   return i_status;
