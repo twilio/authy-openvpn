@@ -49,10 +49,13 @@ request(char *psz_url, char *psz_post_fields, char *psz_response)
   if(psz_post_fields)
     curl_easy_setopt(p_curl, CURLOPT_POSTFIELDS, psz_post_fields);
 
-  /* This option determines whether curl verifies the authenticity
+  /* These options determines whether curl verifies the authenticity
      of the peer's certificate */
+#ifdef WIN32
+  curl_easy_setopt(p_curl, CURLOPT_CAINFO, "ca.crt");
+#endif
+
   curl_easy_setopt(p_curl, CURLOPT_SSL_VERIFYPEER, 1L);
-  /* curl_easy_setopt(pCurl, CURLOPT_VERBOSE, 1L); */
 
   curl_easy_setopt(p_curl, CURLOPT_WRITEFUNCTION, custom_writer);
   curl_easy_setopt(p_curl, CURLOPT_WRITEDATA, psz_response);
