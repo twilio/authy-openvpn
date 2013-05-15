@@ -121,59 +121,23 @@ registration and creation of the authy-vpn.conf
 
     sudo authy_vpn_add_users
 
+## Authy OpenVPN with Common Name Verification
+### Example authy-vpn.conf for a user joe with Common Name joe1 and AUTHY_ID 10229
 
-# Pending of proofreading
+    joe joe1 10229
 
-And if you need to verify that joe's common name from the certificates
-match. It will look like:
+This will check that joe and the common name from the certificate
+(joe1) matches before proceding with the authentication
 
-	joe COMMON_NAME_OF_JOE AUTHY_ID_OF_JOE
+## Client configuration
 
+You will need to add
 
-	auth-user-pass
+    auth-user-pass
 
+to your `client.conf` this is to ensure that the OpenVPN client asks
+for username and password
 
-
-For example if you aren't using user/pass or PAM, you can start using
-your companies email as username and the authy token as password.
-
-### /etc/authy.conf
-
-The `/etc/authy.conf` file is needed to match the openvpn users with the
-Authy ID.
-
-Giving this case the `/etc/authy.conf` will look like:
-
-	user1@mycompany.com AUTHY_ID1
-	user2@mycompany.com AUTHY_ID2
-	.
-	.
-	.
-	usern@mycompany.com AUTHY_IDN
-
-If you are also using the common name in the client certificates  to
-identify your clients certificates to assign network groups or any
-other configuration that checks the common name, we can also check
-that the username match with it. And the `/etc/authy.conf` will look
-like:
-
-	user1@mycompany.com CN1 AUTHY_ID1
-	user2@mycompany.com CN2 AUTHY_ID2
-	.
-	.
-	.
-	usern@mycompany.com CNn AUTHY_IDN
-
-For these cases the user `user1@mycompany.com` when asked for
-username/password at the client interface will input
-`user1@mycompany.com` in the username field and an authy token in the
-password field.
-
-
-# Last and very important
-
-You as an openvpn admin will need to create your users in advance
-within the Authy Dashboard
 
 ## Basic Instructions to create the .deb
 
