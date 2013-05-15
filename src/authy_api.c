@@ -61,7 +61,7 @@ request(char *psz_url, char *psz_post_fields, char *psz_response)
   /* These options determines whether curl verifies the authenticity
      of the peer's certificate */
 #ifdef WIN32
-  curl_easy_setopt(p_curl, CURLOPT_CAINFO, "ca.crt");
+  curl_easy_setopt(p_curl, CURLOPT_CAINFO, "curl-bundle-ca.crt");
 #endif
 
   curl_easy_setopt(p_curl, CURLOPT_SSL_VERIFYPEER, 1L);
