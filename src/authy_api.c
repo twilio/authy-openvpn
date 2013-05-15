@@ -3,6 +3,15 @@
 #define SUCCESS 0
 #define FAILURE 1
 
+/* clean and free */
+static void
+clean_and_free(void * p_target)
+{
+  memset(p_target, 0, sizeof p_target);
+  free(p_target);
+  p_target = NULL;
+}
+
 /* returns the needed size to built the url */
 static int
 url_size(const char *psz_API_url, const char *psz_end_point,
@@ -86,7 +95,7 @@ register_user(const char *psz_API_url, const char *psz_API_key,
   i_res = request(psz_url, psz_post_fields, psz_response);
 
  exit:
-  free(psz_url);
+  clean_and_free(psz_url);
 
   return i_res;
 }
@@ -111,14 +120,13 @@ verify(const char *psz_API_url, const char *psz_API_key,
 
   if(!psz_url)
     goto exit;
-
   url_builder(psz_API_url, psz_API_key, psz_end_point, psz_url);
 
   i_res = request(psz_url, NULL, psz_response);
 
  exit:
-  free(psz_url);
-  free(psz_end_point);
+  clean_and_free(psz_url);
+  clean_and_free(psz_end_point);
 
   return i_res;
 }
@@ -148,8 +156,8 @@ request_sms(const char *psz_API_url, const char *psz_API_key,
   i_res = request(psz_url, NULL, psz_response);
 
  exit:
-  free(psz_url);
-  free(psz_end_point);
+  clean_and_free(psz_url);
+  clean_and_free(psz_end_point);
 
   return i_res;
 }
