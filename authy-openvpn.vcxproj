@@ -39,6 +39,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Documents and Settings\Sebastian\Mis documentos\GitHub\authy-open-vpn\lib\include;C:\Documents and Settings\Sebastian\Mis documentos\GitHub\authy-open-vpn\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Documents and Settings\Sebastian\Mis documentos\GitHub\authy-open-vpn\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -65,8 +67,9 @@
     <ClCompile>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;AUTHYOPENVPN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -74,6 +77,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>curllib.lib;openldap.lib;ssleay32.lib;libeay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
