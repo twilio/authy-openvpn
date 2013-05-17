@@ -34,7 +34,7 @@ _For hardware dongles and phone calls please contact sales@authy.com_
 
 1. Download the deb package.
 
-        curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.0_2.0-ubuntu_i386.deb?raw=true' -o authy-openvpn.deb
+        curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.1_2.1-ubuntu_i386.deb?raw=true' -o authy-openvpn.deb
 
 2. Install package.
 
@@ -44,7 +44,7 @@ _For hardware dongles and phone calls please contact sales@authy.com_
 
 1. Download the rpm package.
 
-        curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-2.0-2.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
+        curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-2.1-2.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
 
 2. Install package.
 
