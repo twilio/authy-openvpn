@@ -7,6 +7,7 @@
  * clean and free
  * Sets the used memory to null and then frees it
  */
+char *
 clean_and_free(void * p_target)
 {
   memset(p_target, 0, sizeof p_target);
@@ -31,7 +32,7 @@ url_size(const char *psz_API_url, const char *psz_end_point, const char *psz_API
 static int
 url_builder(const char *psz_API_url, const char *psz_API_key, char *psz_end_point, char *psz_url, size_t size_url)
 {
-  return snprintf(size_url, psz_url, "%s%s?api_key=%s", psz_API_url, psz_end_point, psz_API_key);
+  return snprintf(psz_url, size_url, "%s%s?api_key=%s", psz_API_url, psz_end_point, psz_API_key);
 }
 
 /*
@@ -139,7 +140,7 @@ verify(const char *psz_API_url, const char *psz_API_key, char *psz_token, char *
   if(!psz_end_point){
     goto exit;
   }
-  snprintf(size_end_point, psz_end_point, "/verify/%s/%s", psz_token, psz_authy_ID);
+  snprintf(psz_end_point, size_end_point, "/verify/%s/%s", psz_token, psz_authy_ID);
 
   size_url = url_size(psz_API_url, psz_end_point, psz_API_key)
     psz_url = (char *) malloc(size_url);
@@ -175,7 +176,7 @@ request_sms(const char *psz_API_url, const char *psz_API_key, char *psz_authy_ID
   if(!psz_end_point){
     goto exit;
   }
-  snprintf(psz_end_point, "/sms/%s", psz_authy_ID);
+  snprintf(psz_end_point, size_end_point, "/sms/%s", psz_authy_ID);
 
   size_url = url_size(psz_API_url, psz_end_point, psz_API_key);
   psz_url = (char *) malloc(size_url);

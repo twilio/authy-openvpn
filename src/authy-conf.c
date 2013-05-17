@@ -79,7 +79,7 @@ get_authy_ID(const char *psz_conf_file_name, const char *psz_username, const cha
   }
 
   char format_we_need[LINE_LENGTH];
-  snprintf(LINE_LENGTH, format_we_need, "%s %%20s", psz_username);
+  snprintf(format_we_need, LINE_LENGTH, "%s %%20s", psz_username);
 
   char line[LINE_LENGTH];
   memset(psz_authy_id, 0, sizeof psz_authy_id);
@@ -90,7 +90,7 @@ get_authy_ID(const char *psz_conf_file_name, const char *psz_username, const cha
      format: USERNAME STRING*/
   do {
     fgets(line, LINE_LENGTH, p_conf_file);
-    b_found_username |= sscanf(line, format_we_need, psz_authy_id);
+    b_format_found |= sscanf(line, format_we_need, psz_authy_id);
   } while(!b_format_found);
 
   /* they query was made for a not listed user */
@@ -106,7 +106,7 @@ get_authy_ID(const char *psz_conf_file_name, const char *psz_username, const cha
       This means that we have to take care of the common_name
       and psz_authy_id is pointing to the common_name value.
     */
-    snprintf(LINE_LENGTH, format_we_need, "%s %s %%20s", psz_username, psz_common_name);
+    snprintf(format_we_need, LINE_LENGTH, "%s %s %%20s", psz_username, psz_common_name);
 
     sscanf(line, format_we_need, psz_authy_id);
 
