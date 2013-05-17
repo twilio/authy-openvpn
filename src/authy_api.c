@@ -142,8 +142,8 @@ verify(const char *psz_API_url, const char *psz_API_key, char *psz_token, char *
   }
   snprintf(psz_end_point, size_end_point, "/verify/%s/%s", psz_token, psz_authy_ID);
 
-  size_url = url_size(psz_API_url, psz_end_point, psz_API_key)
-    psz_url = (char *) malloc(size_url);
+  size_url = url_size(psz_API_url, psz_end_point, psz_API_key);
+  psz_url = (char *) malloc(size_url);
 
   if(!psz_url)
     goto exit;
