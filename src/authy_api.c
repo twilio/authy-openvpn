@@ -1,5 +1,9 @@
 #include "authy_api.h"
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
 #define SUCCESS 0
 #define FAILURE 1
 
