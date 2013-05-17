@@ -2,29 +2,28 @@
 
 With Authy OpenVPN plugin you can add Two-Factor Authentication to
 your vpn server in just minutes. This plugin supports certificate based
-authentication or/and PAM.  
+authentication and/or PAM.  
 
-With Authy your users can authenticate using Authy mobile app,
-phone calls or a hardware dongle.
+With Authy your users can authenticate using Authy mobile app or a hardware dongle.  
 
-_For hardware dongles and phone calls please contact sales@authy.com_
+_For hardware dongles and phone calls please contact sales@authy.com_  
 
 ## Pre-Requisites
 
-1. Authy API Key. Get one free at: https://www.authy.com/signup
+1. Authy API Key. Get one free at: [https://www.authy.com/signup](https://www.authy.com/signup).
 2. OpenVPN installation ([How To](http://openvpn.net/index.php/open-source/documentation/howto.html))
 
 ## Quick Installation
 
 ### Using source code
 
-1. Compile and install
+1. Compile and install.
 
         curl `https://codeload.github.com/authy/authy-open-vpn/zip/master` -o authy-openvpn.zip && tar -zxvf authy-openvpn.zip
         cd authy-open-vpn-master
         sudo make install
 
-2. Get your free Authy API KEY from https://www.authy.com/signup .
+2. Get your free Authy API KEY from [https://www.authy.com/signup](https://www.authy.com/signup).
 
 3. Finally configure the plugin.  
 
@@ -86,7 +85,7 @@ Here the user will enter `user1@company.com` as username and the
 Token(which he gets from the app) as the password. The
 certificate is transparently checked before this happens.  
 
-### Authy plugin with PAM
+### PAM based Auth
 
 If you are using PAM before you can still use authy Two-Factor
 Authentication.
@@ -138,6 +137,24 @@ You will need to add
 to your `client.conf` this is to ensure that the OpenVPN client asks
 for username and password
 
+## Basic windows installation
+
+You need to copy the following dlls  `authy-openvpn.dll`, `lib/msvcr100.dll` and `lib/normaliz.dll` to `OpenVPN\bin`, and `curl-bundle-ca.crt` to `OpenVPN\config\`
+
+Add the following line to your `server.ovpn`
+
+    plugin "C:\\Program Files\\OpenVPN\\bin\\authy-openvpn.dll" https://api.authy.com/protected/json AUTHY_API_KEY nopam
+
+And create the `authy-vpn.conf` inside `C:\\Program Files\\OpenVPN\\config`, remember that the this file follows one of the following patterns
+
+    USERNAME AUTHY_ID
+
+or
+
+    USERNAME COMMON_NAME AUTHY_ID
+
+Remember that the last one is to also check the match between `USERNAME` and `COMMON_NAME`
+
 
 ## Basic Instructions to create the .deb
 
@@ -149,26 +166,6 @@ for username and password
 * Create the .tar.gz of the code and move it inside the rpmbuild/SOURCES
 * rpmbuild -v -bb --clean SPECS/authy-open-vpn.spec
 
-## Basic windows installation
+## Basic Instruction to create the .dll
 
-Copy  
-
-    authy-openvpn.dll
-    lib/msvcr100.dll
-    lib/normaliz.dll
-
-To
-
-    OpenVPN\bin
-
-
-And Copy
-
-    curl-bundle-ca.crt
-
-To
-
-    OpenVPN\config\
-
-
-
+* Open the .sln file in VS (we used VS2010), rebuild the project and that should be enough
