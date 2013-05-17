@@ -74,8 +74,12 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[], const char *
 
   if(argv[1] && argv[2])
   {
+    context->psz_API_url = (char *) calloc(strlen(argv[1]), sizeof(char));
     strncpy(context->psz_API_url, argv[1], strlen(argv[1]));
+
+    context->psz_API_key = (char *) calloc(strlen(argv[2]), sizeof(char));
     strncpy(context->psz_API_key, argv[2], strlen(argv[2]));
+
     context->b_PAM  = 0;
   }
 
