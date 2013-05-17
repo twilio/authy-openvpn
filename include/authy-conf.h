@@ -7,5 +7,5 @@
 
 #define AUTHYTOKENSIZE 7
 
-int get_authy_ID(const char *psz_conf_file_name, const char
-                 *psz_username, const char *psz_common_name, char *psz_authy_id);
+int
+get_authy_ID(const char *psz_conf_file_name, const char *psz_username, const char *psz_common_name, char *psz_authy_id);
