@@ -7,7 +7,7 @@ Section: utils
 Vcs-Git: git://github.com/authy/authy-open-vpn.git
 Vcs-Browser: https://github.com/authy/authy-open-vpn
 
-Package: authy-open-vpn-2.0
+Package: authy-open-vpn-2.1
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Authy Open VPN Two-Factor Authentication
