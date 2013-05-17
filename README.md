@@ -148,3 +148,27 @@ for username and password
 
 * Create the .tar.gz of the code and move it inside the rpmbuild/SOURCES
 * rpmbuild -v -bb --clean SPECS/authy-open-vpn.spec
+
+## Basic windows installation
+
+Copy  
+
+    authy-openvpn.dll
+    lib/msvcr100.dll
+    lib/normaliz.dll
+
+To
+
+    OpenVPN\bin
+
+
+And Copy
+
+    curl-bundle-ca.crt
+
+To
+
+    OpenVPN\config\
+
+
+
