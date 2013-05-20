@@ -53,6 +53,25 @@ _For hardware dongles and phone calls please contact sales@authy.com_
 
         bash /usr/lib/authy/postinstall
 
+### Basic windows installation
+
+You need to copy the following dlls  `authy-openvpn.dll`, `lib/msvcr100.dll` and `lib/normaliz.dll` to `OpenVPN\bin`, and `curl-bundle-ca.crt` to `OpenVPN\config\`
+
+Add the following line to your `server.ovpn`
+
+    plugin "C:\\Program Files\\OpenVPN\\bin\\authy-openvpn.dll" https://api.authy.com/protected/json AUTHY_API_KEY nopam
+
+And create the `authy-vpn.conf` inside `C:\\Program Files\\OpenVPN\\config`, remember that the this file follows one of the following patterns
+
+    USERNAME AUTHY_ID
+
+or
+
+    USERNAME COMMON_NAME AUTHY_ID
+
+Remember that the last one is to also check the match between `USERNAME` and `COMMON_NAME`
+
+
 ### Restarting your server
 
 #### Ubuntu
@@ -77,11 +96,11 @@ If you are already using certificates to authenticate your vpn users you won't
 need to regenerate them. Authy uses a authy-vpn.conf were you tell
 authy the users login and the AUTHY_ID.
 
-##### Example authy-vpn.conf for a user with AUTHY_ID 10229
+##### Example authy-vpn.conf for a user joe with AUTHY_ID 10229
 
-    user1@company.com 10229
+    joe@company.com 10229
 
-Here the user will enter `user1@company.com` as username and the
+Here the user will enter `joe@company.com` as username and the
 Token(which he gets from the app) as the password. The
 certificate is transparently checked before this happens.  
 
@@ -115,12 +134,22 @@ field. EG.
 This section will show how to properly setup Two-Factor Authentication
 on one of your users.
 
-The Authy plugin comes with a script to help with the users
-registration and creation of the authy-vpn.conf
+The Authy VPN plugin comes with a script, that helps you register users.
+
+To add a new user simply type:
 
     sudo authy_vpn_add_users
 
-## Authy OpenVPN with Common Name Verification
+## Optional: Authy OpenVPN with Common Name Verification
+
+Authy by default does not verify that the common name in the certificate matches the login.
+This means a user can logon with someone elses certificate and a different Two-Factor Auth login.
+
+
+This normaly ok as most of the time all users in the VPN have the same priviledges and routes.
+If this is not the case we suggest you verify the common name matches the Two-Factor login.
+This is accomplish by modifying authy-vpn.conf to add the common name to every login.
+
 ### Example authy-vpn.conf for a user joe with Common Name joe1 and AUTHY_ID 10229
 
     joe joe1 10229
@@ -128,44 +157,11 @@ registration and creation of the authy-vpn.conf
 This will check that joe and the common name from the certificate
 (joe1) matches before proceding with the authentication
 
-## Client configuration
+## VPN Client configuration for all users
 
-You will need to add
+Your users will need to add
 
     auth-user-pass
 
-to your `client.conf` this is to ensure that the OpenVPN client asks
-for username and password
-
-## Basic windows installation
-
-You need to copy the following dlls  `authy-openvpn.dll`, `lib/msvcr100.dll` and `lib/normaliz.dll` to `OpenVPN\bin`, and `curl-bundle-ca.crt` to `OpenVPN\config\`
-
-Add the following line to your `server.ovpn`
-
-    plugin "C:\\Program Files\\OpenVPN\\bin\\authy-openvpn.dll" https://api.authy.com/protected/json AUTHY_API_KEY nopam
-
-And create the `authy-vpn.conf` inside `C:\\Program Files\\OpenVPN\\config`, remember that the this file follows one of the following patterns
-
-    USERNAME AUTHY_ID
-
-or
-
-    USERNAME COMMON_NAME AUTHY_ID
-
-Remember that the last one is to also check the match between `USERNAME` and `COMMON_NAME`
-
-
-## Basic Instructions to create the .deb
-
-* Create the .tar.gz of the code
-* dpkg-buildpackage -rfakeroot
-
-## Basic Instructions to create the .rpm
-
-* Create the .tar.gz of the code and move it inside the rpmbuild/SOURCES
-* rpmbuild -v -bb --clean SPECS/authy-open-vpn.spec
-
-## Basic Instruction to create the .dll
-
-* Open the .sln file in VS (we used VS2010), rebuild the project and that should be enough
+to their `client.conf`. This is to ensure that the OpenVPN client asks
+for username and password (this is where they enter the token).

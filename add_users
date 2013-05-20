@@ -55,7 +55,10 @@ function register_user() {
     local login=$1
     url="$AUTHY_URL/protected/json/users/new?api_key=${AUTHY_API_KEY} -d user[email]=$2 -d user[country_code]=$3 -d user[cellphone]=$4 -s"
 
+    green "Registering the user with Authy..."
+    
     response=`curl ${url} 2>/dev/null`
+
     ok=true
 
     if [[ $response == *cellphone* ]]
@@ -70,9 +73,15 @@ function register_user() {
         ok=false
     fi
 
+    if [[ $response == *country* ]]
+    then
+        yellow "Country Code is invalid"
+        ok=false
+    fi
+
     if [[ $ok == false ]]
     then
-        exit 1
+        return 1
     fi
 
     if [[ $response == *user*id* ]]
@@ -81,7 +90,8 @@ function register_user() {
         if [[ $user_id ]]
         then
             echo "$login $user_id" >> $CONFIG_FILE
-            green "User was registered"
+            green "Success: Now, user $login has Two-Factor Authentication enabled."
+            return 0
         else
             red "Cannot register user: $response"
         fi
@@ -91,6 +101,7 @@ function register_user() {
     else
         red "Unknown response: $response"
     fi
+    return 1
 }
 
 function read_config()
@@ -113,7 +124,9 @@ function read_config()
 function register_users()
 {
     echo "This script is to add users to Authy Open VPN"
-    echo "For each user you will need to provide login, email, country code and cellphone"
+    echo "For each user you will need to provide the vpn login, e-mail, country code and cellphone"
+    echo "For PAM, login is the *nix login or your PAM login username."
+    echo "For certificate based Auth we recommend you use e-mails as the login."
 
     echo -n "Login: "
     read login
@@ -130,14 +143,18 @@ function register_users()
 
         register_user $login $email $country_code $cellphone
 
-        echo -n "Login (let it blank if you don't want to add more users): "
+        if [[ $? -ne 0 ]] ; then
+            red "Please try again."
+        fi
+
+        echo -n "Login (leave it blank to exit): "
         read login
     done
 }
 
 
 # cd - >/dev/null
-
+require_curl
 AUTHY_API_KEY="$(read_config)"
 if [ $? -ne 0 ] ; then
     exit 1
@@ -152,4 +169,3 @@ chmod 600  $CONFIG_FILE
 
 check_api_key
 register_users
-
