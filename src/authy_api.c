@@ -8,7 +8,7 @@
 #define FAILURE 1
 
 #define VERB 4
-int debug(const int line, const char *format, ...)
+static int debug(const int line, const char *format, ...)
 {
 	if(VERB >= 4)
 	{

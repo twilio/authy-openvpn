@@ -17,7 +17,7 @@
 #include "jsmn.h"
 #include "authy_api.h"
 
-int debug(const int verb, const int line, const char *format, ...)
+static int debug(const int verb, const int line, const char *format, ...)
 {
 	if(verb >= 4)
 	{
