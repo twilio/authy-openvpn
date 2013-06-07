@@ -86,10 +86,10 @@ request(char *psz_url, char *psz_post_fields, char *psz_response)
 #endif
 
   curl_easy_setopt(p_curl, CURLOPT_SSL_VERIFYPEER, 1L);
-
-  curl_easy_setopt(p_curl, CURLOPT_WRITEFUNCTION, custom_writer);
+  curl_easy_setopt(p_curl, CURLOPT_VERBOSE, 1L);
+  curl_easy_setopt(p_curl, CURLOPT_WRITEFUNCTION, &custom_writer);
   curl_easy_setopt(p_curl, CURLOPT_WRITEDATA, psz_response);
-
+  
   i_res = (int) curl_easy_perform(p_curl);
 
 exit:
@@ -112,7 +112,7 @@ register_user(const char *psz_API_url, const char *psz_API_key, char *psz_post_f
   char *psz_url = NULL, *psz_end_point = "/users/new";
 
   size_url = url_size(psz_API_url, psz_end_point, psz_API_key);
-  psz_url = (char *) malloc(size_url);
+  psz_url = (char *) calloc(size_url, sizeof(char));
   if(!psz_url){
     goto exit;
   }
@@ -139,15 +139,16 @@ verify(const char *psz_API_url, const char *psz_API_key, char *psz_token, char *
   size_t size_url = 0, size_end_point = 0;
   char *psz_url = NULL, *psz_end_point = NULL;
 
-  size_end_point = strlen("/verify/") + strlen(psz_token) + strlen("/") + strlen(psz_authy_ID);
-  psz_end_point = (char *) malloc(size_end_point);
+  size_end_point = strlen("/verify/") + strlen(psz_token) + strlen("/") + strlen(psz_authy_ID) + 1;
+  psz_end_point = (char *) calloc(size_end_point, sizeof(char));
   if(!psz_end_point){
     goto exit;
   }
+
   snprintf(psz_end_point, size_end_point, "/verify/%s/%s", psz_token, psz_authy_ID);
 
   size_url = url_size(psz_API_url, psz_end_point, psz_API_key);
-  psz_url = (char *) malloc(size_url);
+  psz_url = (char *) calloc(size_url, sizeof(char));
 
   if(!psz_url)
     goto exit;
@@ -155,7 +156,7 @@ verify(const char *psz_API_url, const char *psz_API_key, char *psz_token, char *
   url_builder(psz_API_url, psz_API_key, psz_end_point, psz_url, size_url);
 
   i_res = request(psz_url, NULL, psz_response);
-
+  
 exit:
   psz_url = clean_and_free(psz_url);
   psz_end_point = clean_and_free(psz_end_point);
@@ -175,15 +176,15 @@ request_sms(const char *psz_API_url, const char *psz_API_key, char *psz_authy_ID
   size_t size_url = 0, size_end_point = 0;
   char *psz_url = NULL, *psz_end_point = NULL;
 
-  size_end_point = strlen("/sms/") + strlen(psz_authy_ID);
-  psz_end_point = (char *) malloc(size_end_point);
+  size_end_point = strlen("/sms/") + strlen(psz_authy_ID) + 1;
+  psz_end_point = (char *) calloc(size_end_point, sizeof(char));
   if(!psz_end_point){
     goto exit;
   }
   snprintf(psz_end_point, size_end_point, "/sms/%s", psz_authy_ID);
 
   size_url = url_size(psz_API_url, psz_end_point, psz_API_key);
-  psz_url = (char *) malloc(size_url);
+  psz_url = (char *) calloc(size_url, sizeof(char));
 
   if(!psz_url){
     goto exit;
