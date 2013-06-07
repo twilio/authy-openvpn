@@ -50,15 +50,32 @@ function check_api_key() {
     fi
 }
 
+function start_make_dots() {
+    while [[ 1 ]] ; do
+        echo -n '.'
+        sleep 1
+    done
+}
+
+function finish_make_dots() {
+    kill $1
+    echo ""
+}
+
 # usage: register_user "login" "<email>" "<country-code>" "<cellphone>"
 function register_user() {
     local login=$1
     url="$AUTHY_URL/protected/json/users/new?api_key=${AUTHY_API_KEY} -d user[email]=$2 -d user[country_code]=$3 -d user[cellphone]=$4 -s"
 
-    green "Registering the user with Authy..."
-    
+    green "Registering the user with Authy"
+
+    start_make_dots &
+    local dots_pid=$!
+
     response=`curl ${url} 2>/dev/null`
 
+    finish_make_dots $dots_pid
+    
     ok=true
 
     if [[ $response == *cellphone* ]]

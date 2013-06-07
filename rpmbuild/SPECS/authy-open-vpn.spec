@@ -1,7 +1,7 @@
 %define name authy-open-vpn
-%define version 2.1
+%define version 2.2
 
-Name:           %{name}
+Name:           %{name} 
 Version:        %{version}
 Release:        2%{?dist}
 Summary:        Authy Open VPN Two-Factor Authentication
@@ -51,7 +51,7 @@ echo "Remember to run \"bash $RPM_BUILD_ROOT/usr/lib/authy/postinstall\" for con
 /usr/sbin/authy_vpn_add_users
 
 %changelog
-* Fri May 17 2013 Sebastian Arcila Valenzuela (sarcilav) <sebastian at authy.com> - 2.1-2
-- Release 2.1
+* Fri May 20 2013 Sebastian Arcila Valenzuela (sarcilav) <sebastian at authy.com> - 2.2-2
+- Release 2.2
 
 
