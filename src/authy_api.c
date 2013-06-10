@@ -87,7 +87,7 @@ request(char *psz_url, char *psz_post_fields, char *psz_response)
 
   curl_easy_setopt(p_curl, CURLOPT_SSL_VERIFYPEER, 1L);
   curl_easy_setopt(p_curl, CURLOPT_VERBOSE, 1L);
-  curl_easy_setopt(p_curl, CURLOPT_WRITEFUNCTION, &custom_writer);
+  curl_easy_setopt(p_curl, CURLOPT_WRITEFUNCTION, custom_writer);
   curl_easy_setopt(p_curl, CURLOPT_WRITEDATA, psz_response);
   
   i_res = (int) curl_easy_perform(p_curl);
