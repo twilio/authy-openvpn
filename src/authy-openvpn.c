@@ -17,6 +17,22 @@
 #include "jsmn.h"
 #include "authy_api.h"
 
+int debug(const int verb, const int line, const char *format, ...)
+{
+	if(verb >= 4)
+	{
+		printf("Authy Plugin: %d\t", line);
+		va_list arg;
+		int done;
+
+        va_start (arg, format);
+        done = vfprintf (stderr, format, arg);
+        va_end (arg);
+		fflush(stderr);
+        return done;
+	}
+	return 0;
+}
 
 /*
  * This state expects the following config line
@@ -31,6 +47,7 @@ struct plugin_context {
   char *psz_API_url;
   char *psz_API_key;
   int b_PAM;
+  int verb;
 };
 
 /*
@@ -71,9 +88,20 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[], const char *
   struct plugin_context *context;
 
   context = (struct plugin_context *) calloc(1, sizeof(struct plugin_context));
+  
+  if(!context){
+    goto error;
+  }
+  /* Save the verbosite level from env */
+  const char *verb_string = get_env ("verb", envp);
+  if (verb_string){
+	context->verb = atoi (verb_string);
+  }
 
   if(argv[1] && argv[2])
   {
+	debug(context->verb, __LINE__, "Plugin path = %s\n", argv[0]);
+	debug(context->verb, __LINE__, "api url = %s, api key %s\n", argv[1], argv[2]); 
     context->psz_API_url = (char *) calloc(strlen(argv[1]) + 1, sizeof(char));
     strncpy(context->psz_API_url, argv[1], strlen(argv[1]));
 
@@ -81,6 +109,7 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[], const char *
     strncpy(context->psz_API_key, argv[2], strlen(argv[2]));
 
     context->b_PAM  = 0;
+	
   }
 
   if (argv[3] && strncmp(argv[3], "pam", 3) == SUCCESS)
@@ -91,6 +120,9 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[], const char *
 
   /* Cast and return the context */
   return (openvpn_plugin_handle_t) context;
+
+error:
+  return (openvpn_plugin_handle_t)FAILURE;
 }
 
 /*
@@ -146,6 +178,8 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   psz_control     = get_env("auth_control_file", envp);
   psz_response    = (char *) calloc(255, sizeof(char));
 
+  debug(context->verb, __LINE__, "Starting");
+
   if(!psz_common_name || !psz_token || !psz_username || !psz_response){
     goto exit;
   }
@@ -159,11 +193,12 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
       goto exit;
     }
   }
-
+  debug(context->verb, __LINE__, "username = %s, token = %s\n", psz_username, psz_token); 
   /* make a better use of envp to set the configuration file */
   if(get_authy_ID(AUTHYVPNCONF, psz_username, psz_common_name, psz_authy_ID) == FAILURE){
     goto exit;
   }
+  debug(context->verb, __LINE__, "authy_ID = %s\n", psz_authy_ID);
 
   if(!(verify((const char *) context->psz_API_url, (const char *) context->psz_API_key, psz_token, psz_authy_ID, psz_response) == SUCCESS &&
        parse_response(psz_response) == SUCCESS)){
@@ -173,6 +208,8 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   i_status = SUCCESS;
 
 exit:
+  
+  debug(context->verb, __LINE__, "response %s", psz_response);
 
   p_file_auth = fopen(psz_control, "w");
   /* set the control file to '1' if suceed or to '0' if fail */
