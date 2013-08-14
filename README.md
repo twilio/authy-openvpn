@@ -15,7 +15,7 @@ _For hardware dongles and phone calls please contact sales@authy.com_
 
 ## Quick Installation
 
-### Using source code
+#### Using source code
 
 1. Compile and install.
 
@@ -29,24 +29,41 @@ _For hardware dongles and phone calls please contact sales@authy.com_
 
         sudo ./postinstall
 
-### Using Ubuntu and Debian packages
+
+4. Restart your server (see below).
+
+5. Start adding users using `sudo authy_vpn_add_users` (see below).
+
+#### Using Ubuntu and Debian packages
 
 1. Download the deb package.
-
     - i386
 
-          curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.2_2.2-ubuntu_i386.deb?raw=true' -o authy-openvpn.deb
+            curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.2_2.2-ubuntu_i386.deb?raw=true' -o authy-openvpn.deb
 
     - amd64
 
-          curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.3_2.3-ubuntu_amd64.deb?raw=true' -o authy-openvpn.deb
+            curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.3_2.3-ubuntu_amd64.deb?raw=true' -o authy-openvpn.deb
 
 
-2. Install package.
+2. Move your OpenVPN config file to /etc/openvpn/server.conf
+  
+        sudo mv /etc/openvpn/[your-open-vpn].conf /etc/openvpn/server.conf
+
+
+3. Install debian package.
 
         sudo dpkg -i authy-openvpn.deb
 
-### CentOS and RedHat based systems
+        During installation you will be asked your API Key
+
+
+4. Restart your server (see below).
+
+5. Start adding users using `sudo authy_vpn_add_users` (see below)
+
+
+#### CentOS and RedHat based systems
 
 1. Download the rpm package.
 
@@ -60,7 +77,12 @@ _For hardware dongles and phone calls please contact sales@authy.com_
 
         bash /usr/lib/authy/postinstall
 
-### Basic windows installation
+
+4. Restart your server (see below).
+
+5. Start adding users using `sudo authy_vpn_add_users` (see below)
+
+####  Windows install
 
 You need to copy the following dlls  `authy-openvpn.dll`, `lib/msvcr100.dll` and `lib/normaliz.dll` to `OpenVPN\bin`, and `curl-bundle-ca.crt` to `OpenVPN\config\`
 
@@ -79,7 +101,7 @@ or
 Remember that the last one is to also check the match between `USERNAME` and `COMMON_NAME`
 
 
-### Restarting your server
+### Restarting your OpenVPN server
 
 #### Ubuntu
 
@@ -93,14 +115,59 @@ Remember that the last one is to also check the match between `USERNAME` and `CO
 
 	/sbin/service openvpn restart
 
-## How Authy VPN works
+<br/>
+<br/>
 
-### Certificates based Auth
+## Adding Users
+
+To add users make sure you have their cellphone numbers. 
+
+The Authy VPN plugin comes with a script, that helps you register users.
+
+To start adding users type:
+
+    sudo authy_vpn_add_users 
+    
+    sudo authy_vpn_add_users
+    This script is to add users to Authy Open VPN
+    For each user you will need to provide the vpn login, e-mail, country code and cellphone
+    For PAM, login is the *nix login or your PAM login username.
+    For certificate based Auth we recommend you use e-mails as the login.
+    Login: liz@authy.com
+    Email: liz@authy.com
+    Country Code (EG. 1 for US): 1
+    Cellphone: 347-388-2229
+    Registering the user with Authy
+    ...
+    Success: Now, user liz@authy.com has Two-Factor Authentication enabled.
+
+<br/>
+<br/>
+  
+  
+## How Authy-VPN works
+
+Authy stores it's configuration in the file `/etc/authy-vpn.conf`
+The files format is:
+
+    username authy_id
+
+For example for `liz@authy.com` it would look:
+
+    sudo cat /etc/authy-vpn.conf
+    liz@authy.com 12323
+
+When liz is login in, she will type `liz@authy.com` as her username and the
+token as the password.
+
+You can edit this file by hand or using `authy_vpn_add_users`
+
+### With Certificates based Authentication
 
 In this scenario user needs: username + certificate + token to login.
 
-If you are already using certificates to authenticate your vpn users you won't
-need to regenerate them. Authy uses a authy-vpn.conf were you tell
+If you're  already using certificates to authenticate your vpn users you won't
+need to regenerate them. All you have to do is edit `etc/uthy-vpn.conf' were you tell
 authy the users login and the AUTHY_ID.
 
 ##### Example authy-vpn.conf for a user joe with AUTHY_ID 10229
@@ -135,17 +202,9 @@ field. EG.
 
 `1234567` would be the Token.
 
-
-## Adding your first user
-
-This section will show how to properly setup Two-Factor Authentication
-on one of your users.
-
-The Authy VPN plugin comes with a script, that helps you register users.
-
-To add a new user simply type:
-
-    sudo authy_vpn_add_users
+<br/>
+<br/>
+<br/>
 
 ## Optional: Authy OpenVPN with Common Name Verification
 
