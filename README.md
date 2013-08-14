@@ -6,7 +6,7 @@ authentication and/or PAM.
 
 With Authy your users can authenticate using Authy mobile app or a hardware dongle.  
 
-_For hardware dongles and phone calls please contact sales@authy.com_  
+_For hardware dongles, SMS and phone calls please contact sales@authy.com_  
 
 ## Pre-Requisites
 
@@ -40,7 +40,6 @@ _For hardware dongles and phone calls please contact sales@authy.com_
     - i386
 
             curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.2_2.2-ubuntu_i386.deb?raw=true' -o authy-openvpn.deb
-
     - amd64
 
             curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.3_2.3-ubuntu_amd64.deb?raw=true' -o authy-openvpn.deb
