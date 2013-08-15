@@ -17,8 +17,16 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 #### Using source code
 
-1. Compile and install.
 
+##### Require libs
+
+1. build-essential: gcc, libc
+2. libcurl with SSL: libcurl4-openssl-dev 
+3. libpam: libpam0g-dev
+
+##### Compiling and installing
+
+1. Compile and install.
         curl `https://codeload.github.com/authy/authy-open-vpn/zip/master` -o authy-openvpn.zip && tar -zxvf authy-openvpn.zip
         cd authy-open-vpn-master
         sudo make install

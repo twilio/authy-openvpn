@@ -89,7 +89,9 @@ get_authy_ID(const char *psz_conf_file_name, const char *psz_username, const cha
   /* Traverse the config file until we find the line that matches the
      format: USERNAME STRING*/
   do {
-    fgets(line, LINE_LENGTH, p_conf_file);
+    if(NULL == fgets(line, LINE_LENGTH, p_conf_file)){
+      break;
+    }
     b_format_found |= sscanf(line, format_we_need, psz_authy_id);
   } while(!b_format_found);
 

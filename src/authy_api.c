@@ -1,5 +1,6 @@
-#include "authy_api.h"
+#include <stdarg.h>
 
+#include "authy_api.h"
 #ifdef WIN32
 #define snprintf _snprintf
 #endif
@@ -16,8 +17,8 @@ static int debug(const int line, const char *format, ...)
 		va_list arg;
 		int done;
 
-        va_start (arg, format);
-        done = vfprintf (stderr, format, arg);
+        va_start(arg, format);
+        done = vfprintf(stderr, format, arg);
         va_end (arg);
 		fflush(stderr);
         return done;
