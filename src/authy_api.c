@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <curl/curl.h>
 
 #include "authy_api.h"
 #ifdef WIN32

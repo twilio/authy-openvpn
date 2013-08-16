@@ -35,8 +35,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 3. Finally configure the plugin.  
 
-        sudo ./post-install
-
+        sudo ./scripts/post-install
 
 4. Restart your server (see below).
 
