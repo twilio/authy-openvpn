@@ -52,7 +52,7 @@
 
 #define DEBUG(verb) ((verb) >= 4)
 
-#define AUTHYTOKENSIZE 7
+#define AUTHY_TOKEN_SIZE 7
 
 /* Command codes for foreground -> background communication */
 #define COMMAND_VERIFY 0
@@ -564,12 +564,12 @@ my_conv (int n, const struct pam_message **msg_array,
     {
       /* split the password and remove the token */
       const size_t size = strlen(up->password);
-      if(size > AUTHYTOKENSIZE)
+      if(size > AUTHY_TOKEN_SIZE)
         /* if it is less than 7 the user isn't concatenating */
         {
-          const int newsize = size - AUTHYTOKENSIZE;
+          const int newsize = size - AUTHY_TOKEN_SIZE;
           /* set to NULL the space occupied by the token*/
-          memset((void *)(up->password) + newsize, 0, AUTHYTOKENSIZE);
+          memset((void *)(up->password) + newsize, 0, AUTHY_TOKEN_SIZE);
         }
       else
         return PAM_CONV_ERR;

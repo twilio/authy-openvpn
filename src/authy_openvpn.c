@@ -4,13 +4,14 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
-#define AUTHYVPNCONF "authy-vpn.conf"
+#define AUTHY_VPN_CONF "authy-vpn.conf"
 #pragma comment(lib, "ws2_32.lib")
 
 #else
-#define AUTHYVPNCONF "/etc/authy-vpn.conf"
+#define AUTHY_VPN_CONF "/etc/authy-vpn.conf"
 #endif
 
+#include <stdarg.h>
 
 #include "authy-conf.h"
 #include "openvpn-plugin.h"
@@ -25,11 +26,11 @@ static int debug(const int verb, const int line, const char *format, ...)
 		va_list arg;
 		int done;
 
-        va_start (arg, format);
-        done = vfprintf (stderr, format, arg);
-        va_end (arg);
-		fflush(stderr);
-        return done;
+    va_start(arg, format);
+    done = vfprintf (stderr, format, arg);
+    va_end(arg);
+    fflush(stderr);
+    return done;
 	}
 	return 0;
 }
@@ -188,15 +189,15 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   if(context->b_PAM)
   {
     const int is_token = strlen(psz_token);
-    if(is_token > AUTHYTOKENSIZE){
-      psz_token = psz_token + (is_token - AUTHYTOKENSIZE);
+    if(is_token > AUTHY_TOKEN_SIZE){
+      psz_token = psz_token + (is_token - AUTHY_TOKEN_SIZE);
     } else {
       goto exit;
     }
   }
   debug(context->verb, __LINE__, "username=%s, token=%s ", psz_username, psz_token); 
   /* make a better use of envp to set the configuration file */
-  if(get_authy_ID(AUTHYVPNCONF, psz_username, psz_common_name, psz_authy_ID) == FAILURE){
+  if(get_authy_ID(AUTHY_VPN_CONF, psz_username, psz_common_name, psz_authy_ID) == FAILURE){
     goto exit;
   }
   debug(context->verb, __LINE__, "and AUTHY_ID=%s\n", psz_authy_ID);
@@ -214,10 +215,10 @@ exit:
   p_file_auth = fopen(psz_control, "w");
   /* set the control file to '1' if suceed or to '0' if fail */
   if(i_status != SUCCESS){
-  debug(context->verb, __LINE__, "[Authy] Auth failed for %s\n", psz_username);
+  debug(context->verb, __LINE__, "[Authy] Auth finished. Result: auth failed for username %s with token %s\n", psz_username, psz_token);
     fprintf(p_file_auth, "0");
   } else {
-    debug(context->verb, __LINE__, "[Authy] Auth success for %s\n", psz_username);
+    debug(context->verb, __LINE__, "[Authy] Auth finished. Result: auth success for username %s\n", psz_username);
     fprintf(p_file_auth, "1");
   }
 
