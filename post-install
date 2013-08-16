@@ -25,30 +25,27 @@ function add_pam {
 }
 
 function prephase {
-    echo -n "Do you want help editing the server.conf? (y/n): "
+    echo -n "Do you want us to edit server.conf for you? (y/n): "
     read helpp
     if [ $helpp != 'y' ] ; then
         return 0
     fi
 
     local serverconf="/etc/openvpn/server.conf"
-    echo -n "Is $serverconf your openvpn server configuration? (y/n): "
-    read helpp
-
-    if [ $helpp != 'y' ] ; then
-        echo -n "Which and where is your openvpn server configuration? "
-        read serverconf
+    if [ ! -f $serverconf ] ; then
+      echo -n "Enter path to your openvpn configuration: "
+      read serverconf
     fi
-
+    
     if [ ! -f "$serverconf" ] ; then
-        echo "Invalid or inexistent file"
+        echo "Config file not found. Make sure you enter the absolute path."
         return 1
     fi
 
     echo -n "Authy API KEY: "
     read authy_key
 
-    echo -n "Are you using or going to use openvpn with pam and Authy? (y/n): "
+    echo -n "Are you using OpenVPN with PAM? (y/n): "
     read helpp
 
     if [ $helpp != 'y' ] ; then

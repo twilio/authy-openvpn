@@ -35,7 +35,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 3. Finally configure the plugin.  
 
-        sudo ./postinstall
+        sudo ./post-install
 
 
 4. Restart your server (see below).
@@ -82,7 +82,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 3. Finally configure the plugin.
 
-        bash /usr/lib/authy/postinstall
+        bash /usr/lib/authy/post-install
 
 
 4. Restart your server (see below).
@@ -191,7 +191,7 @@ If you are using PAM before you can still use authy Two-Factor
 Authentication.
 
 To use PAM simply answer that you are going to use PAM during the
-postinstall script.
+`post-install` script.
 
 
 ##### Example authy-vpn.conf for a user joe with AUTHY_ID 10229
