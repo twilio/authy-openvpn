@@ -2,28 +2,41 @@
 # Build Authy OpenVPN plugin module on *nix.
 
 CC=gcc
-LIBNAME=authy-openvpn
-CFLAGS=-fPIC -O2 -Wall
-OBJFLAGS=-I./include/ -c
-LIBFLAGS=-shared -Wl,-soname
+LIBNAME=authy_openvpn
 PAM=pam
+
+CFLAGS=-fPIC -O2 -Wall
+OBJFLAGS=-I./src/include/ -c
+LIBFLAGS=-shared -Wl,-soname
 INSTDIR=/usr/lib/authy
-all: $(LIBNAME).so $(PAM).so
+BUILD_DIR= build
+SDIR= src
 
-objects:
-	rm -f *.o
-	$(CC) $(CFLAGS) -lcurl $(OBJFLAGS) src/*.c src/*.h
+_OBJS = authy_openvpn.o authy_api.o jsmn.o authy_conf.o
+OBJS = $(patsubst %,$(BUILD_DIR)/%,$(_OBJS))
 
-$(LIBNAME).so: objects
+_PAM_OBJS = auth-pam.o pamdl.o 
+PAM_OBJS = $(patsubst %,$(BUILD_DIR)/vendor/%,$(_PAM_OBJS))
+
+all: $(BUILD_DIR)/$(LIBNAME).so $(BUILD_DIR)/vendor/$(PAM).so
+
+# Build all .o
+$(BUILD_DIR)/%.o: $(SDIR)/%.c 
+	mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) -lcurl $(OBJFLAGS) -o $@ $<
+
+# Make Authy lib
+$(BUILD_DIR)/$(LIBNAME).so: $(OBJS)
 	# MAC SUPER dylib compile gcc -dynamiclib	-Wl,-headerpad_max_install_names,-undefined,dynamic_lookup,-compatibility_version,1.0,-current_version,1.0,-install_name,/usr/local/lib/lib$(OBJ).1.dylib	-o lib$(OBJ).1.dylib $(OBJ).o
-	$(CC) $(CFLAGS) $(LIBFLAGS),$(LIBNAME).so -o $(LIBNAME).so *.o -lc -lcurl
+	$(CC) $(CFLAGS) -lc -lcurl $(LIBFLAGS),$(LIBNAME).so -o $@ $^
 
-$(PAM).o:
-	rm -f *.o
-	$(CC) $(CFLAGS) -lpam $(OBJFLAGS) custom-pam-module/*.c custom-pam-module/*.h
+$(BUILD_DIR)/vendor/%.o: $(SDIR)/vendor/custom-pam-module/%.c
+	mkdir -p $(BUILD_DIR)/vendor
+	$(CC) $(CFLAGS) -lpam $(OBJFLAGS) -o $@ $< 
 
-$(PAM).so: $(PAM).o
-	$(CC) $(CFLAGS) $(LIBFLAGS),$(PAM).so -o $(PAM).so *.o -lc -lpam
+$(BUILD_DIR)/vendor/$(PAM).so: $(PAM_OBJS)
+	$(CC) $(CFLAGS) -lc -lpam $(LIBFLAGS),$(PAM).so -o $@ $^
+
 
 install: $(LIBNAME).so $(PAM).so
 	mkdir -p $(DESTDIR)$(INSTDIR)
@@ -34,4 +47,5 @@ install: $(LIBNAME).so $(PAM).so
 	chmod 700 $(DESTDIR)/usr/sbin/authy_vpn_add_users
 
 clean:
-	rm -f *.o
+	rm -rf $(BUILD_DIR)
+
