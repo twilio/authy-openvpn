@@ -74,7 +74,7 @@ function register_user() {
 
     response=`curl ${url} 2>/dev/null`
 
-    finish_make_dots $dots_pid
+    finish_make_dots $dots_pid 2>/dev/null
     
     ok=true
 
@@ -107,7 +107,7 @@ function register_user() {
         if [[ $user_id ]]
         then
             echo "$login $user_id" >> $CONFIG_FILE
-            green "Success: Now, user $login has Two-Factor Authentication enabled."
+            green "Success: User $login was registered with id $user_id."
             return 0
         else
             red "Cannot register user: $response"
