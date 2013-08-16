@@ -8,9 +8,10 @@ PAM=pam
 CFLAGS=-fPIC -O2 -Wall
 OBJFLAGS=-I./src/include/ -c
 LIBFLAGS=-shared -Wl,-soname
-INSTDIR=/usr/lib/authy
 BUILD_DIR= build
 SDIR= src
+
+INSTDIR=/usr/lib/authy
 
 _OBJS = authy_openvpn.o authy_api.o jsmn.o authy_conf.o
 OBJS = $(patsubst %,$(BUILD_DIR)/%,$(_OBJS))
@@ -38,13 +39,13 @@ $(BUILD_DIR)/vendor/$(PAM).so: $(PAM_OBJS)
 	$(CC) $(CFLAGS) -lc -lpam $(LIBFLAGS),$(PAM).so -o $@ $^
 
 
-install: $(LIBNAME).so $(PAM).so
-	mkdir -p $(DESTDIR)$(INSTDIR)
-	cp $(LIBNAME).so $(PAM).so $(DESTDIR)$(INSTDIR)
-	chmod 755 $(DESTDIR)$(INSTDIR)/*.so
-	mkdir -p $(DESTDIR)/usr/sbin
-	cp add_users $(DESTDIR)/usr/sbin/authy_vpn_add_users
-	chmod 700 $(DESTDIR)/usr/sbin/authy_vpn_add_users
+install: $(BUILD_DIR)/$(LIBNAME).so $(BUILD_DIR)/vendor/$(PAM).so
+	mkdir -p $(INSTDIR)
+	cp $(BUILD_DIR)/$(LIBNAME).so $(BUILD_DIR)/vendor/$(PAM).so $(INSTDIR)
+	chmod 755 $(INSTDIR)/*.so
+	mkdir -p /usr/sbin
+	cp scripts/add_users /usr/sbin/authy_vpn_add_users
+	chmod 700 /usr/sbin/authy_vpn_add_users
 
 clean:
 	rm -rf $(BUILD_DIR)
