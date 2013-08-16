@@ -26,6 +26,7 @@ static int debug(const int line, const char *format, ...)
 	}
 	return 0;
 }
+
 /*
  * clean and free
  * Sets the used memory to null and then frees it
@@ -33,8 +34,10 @@ static int debug(const int line, const char *format, ...)
 char *
 clean_and_free(void * p_target)
 {
-  memset(p_target, 0, sizeof p_target);
-  free(p_target);
+  if(p_target != NULL) {
+    memset(p_target, 0, sizeof p_target);
+    free(p_target);
+  }
   return NULL;
 }
 
@@ -42,20 +45,34 @@ clean_and_free(void * p_target)
  * url size
  * calls the size need for an api url
  */
-static int
-url_size(const char *psz_API_url, const char *psz_end_point, const char *psz_API_key)
+static size_t
+calc_url_size(const char *psz_API_url, const char *psz_end_point, const char *psz_API_key, const char *psz_params)
 {
-  return strlen(psz_API_url) + strlen(psz_end_point) + strlen("?api_key=") + strlen(psz_API_key) + 1;
+  return strlen(psz_API_url) + strlen(psz_end_point) + strlen(psz_params) + strlen(psz_API_key) + 1;
 }
 
 /* url builder
  * builds the url and save it to psz_url
  * and returns the actual size of the url
  */
-static int
-url_builder(const char *psz_API_url, const char *psz_API_key, char *psz_end_point, char *psz_url, size_t size_url)
+static char*
+url_builder(const char *psz_API_url, const char *psz_API_key, char *psz_end_point, char *psz_params)
 {
-  return snprintf(psz_url, size_url, "%s%s?api_key=%s", psz_API_url, psz_end_point, psz_API_key);
+  char *psz_url = NULL;
+  size_t url_size = calc_url_size(psz_API_url, psz_end_point, psz_API_key, psz_params);
+
+  psz_url = calloc(url_size, sizeof(char));
+  if(!psz_url){
+    goto error;
+  }
+
+  snprintf(psz_url, url_size, "%s%s%s%s", psz_API_url, psz_end_point, psz_params, psz_API_key);
+
+  return psz_url;
+
+error:
+  debug(__LINE__, "[Authy] memory error: malloc failed.");
+  return NULL;
 }
 
 /*
@@ -76,19 +93,20 @@ custom_writer(char *ptr, size_t size, size_t nmemb, void *userdata)
  * this method handles the request to the api
  * it knows when to make a GET or a POST based
  * on the present of psz_post_fields
+ *
+ * Returns:
+ *   SUCCESS: request was success.
+ *   FAILURE: curl failed.
  */
 static int
 request(char *psz_url, char *psz_post_fields, char *psz_response)
 {
   CURL *p_curl;
-  int i_res;
+  int res = FAILURE;
 
   curl_global_init(CURL_GLOBAL_ALL);
 
   p_curl = curl_easy_init();
-
-  i_res = FAILURE;
-
   if(!p_curl){
     goto exit;
   }
@@ -109,8 +127,15 @@ request(char *psz_url, char *psz_post_fields, char *psz_response)
   curl_easy_setopt(p_curl, CURLOPT_WRITEFUNCTION, custom_writer);
   curl_easy_setopt(p_curl, CURLOPT_WRITEDATA, psz_response);
   
-  i_res = (int) curl_easy_perform(p_curl);
-  debug(__LINE__, "[Authy] Curl response: Code=%d, Body=%s\n", i_res, psz_response);
+  res = (int) curl_easy_perform(p_curl);
+  if(res != 0) {
+    debug(__LINE__, "Curl failed with code %d", res);
+    res = FAILURE;
+    goto exit;
+  }
+
+  debug(__LINE__, "[Authy] Curl response: Body=%s\n", psz_response);
+  res = SUCCESS;
 exit:
   /* Always cleanup otherwise it will lead to memoryleaks */
 #ifdef WIN32
@@ -119,35 +144,39 @@ exit:
   curl_easy_cleanup(p_curl);
 #endif
 
-  return i_res;
+  return res;
 }
 
 /*
- * register user
- * enable two-factor on a specific user
+ * Enable two-factor on a specific user
  * it sends a POST to https://api.authy.com/protected/{FORMAT}/users/new?api_key={KEY}
+ *
+ * returns:
+ *   SUCCESS: if the user was added correctly.
+ *   FAILURE: failed to add user.
  */
 extern int
 register_user(const char *psz_API_url, const char *psz_API_key, char *psz_post_fields, char *psz_response)
 {
-  int i_res = FAILURE;
-  size_t size_url = 0;
-  char *psz_url = NULL, *psz_end_point = "/users/new";
+  int res = FAILURE;
+  char *psz_url = NULL;
+  char *psz_end_point = "/users/new";
+  char *psz_params = "?api_key=";
 
-  size_url = url_size(psz_API_url, psz_end_point, psz_API_key);
-  psz_url = (char *) calloc(size_url, sizeof(char));
-  if(!psz_url){
-    goto exit;
+  psz_url = url_builder(psz_API_url, psz_API_key, psz_end_point, psz_params);
+
+  if(psz_url == NULL) {
+    goto error;
   }
 
-  url_builder(psz_API_url, psz_API_key, psz_end_point, psz_url, size_url);
+  res = request(psz_url, psz_post_fields, psz_response);
 
-  i_res = request(psz_url, psz_post_fields, psz_response);
-
-exit:
   psz_url = clean_and_free(psz_url);
 
-  return i_res;
+  return res;
+
+error:
+  return FAILURE;
 }
 
 /*
@@ -158,33 +187,35 @@ exit:
 extern int
 verify(const char *psz_API_url, const char *psz_API_key, char *psz_token, char *psz_authy_ID, char *psz_response)
 {
-  int i_res = FAILURE;
-  size_t size_url = 0, size_end_point = 0;
-  char *psz_url = NULL, *psz_end_point = NULL;
+  int res = FAILURE;
+  size_t end_point_size = 0;
+  char *psz_url = NULL;
+  char *psz_end_point = NULL;
+  char *psz_params = "?force=true&api_key=";
 
-  size_end_point = strlen("/verify/") + strlen(psz_token) + strlen("/") + strlen(psz_authy_ID) + 1;
-  psz_end_point = (char *) calloc(size_end_point, sizeof(char));
+  end_point_size = strlen("/verify/") + strlen(psz_token) + strlen("/") + strlen(psz_authy_ID) + 1;
+  psz_end_point = calloc(end_point_size, sizeof(char));
   if(!psz_end_point){
+    res = FAILURE;
     goto exit;
   }
 
-  snprintf(psz_end_point, size_end_point, "/verify/%s/%s", psz_token, psz_authy_ID);
+  snprintf(psz_end_point, end_point_size, "/verify/%s/%s", psz_token, psz_authy_ID);
+  psz_url = url_builder(psz_API_url, psz_API_key, psz_end_point, psz_params);
 
-  size_url = url_size(psz_API_url, psz_end_point, psz_API_key);
-  psz_url = (char *) calloc(size_url, sizeof(char));
-
-  if(!psz_url)
+  if(!psz_url) {
+    res = FAILURE;
     goto exit;
+  }
 
-  url_builder(psz_API_url, psz_API_key, psz_end_point, psz_url, size_url);
+  res = request(psz_url, NULL, psz_response);
 
-  i_res = request(psz_url, NULL, psz_response);
 
 exit:
   psz_url = clean_and_free(psz_url);
   psz_end_point = clean_and_free(psz_end_point);
 
-  return i_res;
+  return res;
 }
 
 /*
@@ -195,30 +226,30 @@ exit:
 extern int
 request_sms(const char *psz_API_url, const char *psz_API_key, char *psz_authy_ID, char *psz_response)
 {
-  int i_res = FAILURE;
-  size_t size_url = 0, size_end_point = 0;
-  char *psz_url = NULL, *psz_end_point = NULL;
+  int res = FAILURE;
+  size_t end_point_size = 0;
+  char *psz_url = NULL;
+  char *psz_end_point = NULL;
+  char *psz_params = "?api_key=";
 
-  size_end_point = strlen("/sms/") + strlen(psz_authy_ID) + 1;
-  psz_end_point = (char *) calloc(size_end_point, sizeof(char));
+  end_point_size = strlen("/sms/") + strlen(psz_authy_ID) + 1;
+  psz_end_point = calloc(end_point_size, sizeof(char));
   if(!psz_end_point){
     goto exit;
   }
-  snprintf(psz_end_point, size_end_point, "/sms/%s", psz_authy_ID);
+  snprintf(psz_end_point, end_point_size, "/sms/%s", psz_authy_ID);
 
-  size_url = url_size(psz_API_url, psz_end_point, psz_API_key);
-  psz_url = (char *) calloc(size_url, sizeof(char));
-
-  if(!psz_url){
+  psz_url = url_builder(psz_API_url, psz_API_key, psz_end_point, psz_params);
+  if(!psz_url) {
+    res = FAILURE;
     goto exit;
   }
-  url_builder(psz_API_url, psz_API_key, psz_end_point, psz_url, size_url);
 
-  i_res = request(psz_url, NULL, psz_response);
+  res = request(psz_url, NULL, psz_response);
 
 exit:
   psz_url = clean_and_free(psz_url);
   psz_end_point = clean_and_free(psz_end_point);
 
-  return i_res;
+  return res;
 }
