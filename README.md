@@ -18,7 +18,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 #### Using source code
 
 
-##### Require libs
+##### Required libs
 
 1. build-essential: gcc, libc
 2. libcurl with SSL: libcurl4-openssl-dev 
@@ -27,7 +27,9 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 ##### Compiling and installing
 
 1. Compile and install.
-        curl `https://codeload.github.com/authy/authy-open-vpn/zip/master` -o authy-openvpn.zip && tar -zxvf authy-openvpn.zip
+
+        curl "https://github.com/authy/authy-open-vpn/archive/master.tar.gz" -o authy-openvpn.tar.gz
+        tar -zxvf authy-openvpn.tar.gz
         cd authy-open-vpn-master
         sudo make install
 
@@ -39,7 +41,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 4. Restart your server (see below).
 
-5. Start adding users using `sudo authy_vpn_add_users` (see below).
+5. Start adding users using `sudo authy-vpn-add-users` (see below).
 
 #### Using Ubuntu and Debian packages
 
@@ -66,7 +68,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 4. Restart your server (see below).
 
-5. Start adding users using `sudo authy_vpn_add_users` (see below)
+5. Start adding users using `sudo authy-vpn-add-users` (see below)
 
 
 #### CentOS and RedHat based systems
@@ -86,7 +88,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 4. Restart your server (see below).
 
-5. Start adding users using `sudo authy_vpn_add_users` (see below)
+5. Start adding users using `sudo authy-vpn-add-users` (see below)
 
 ####  Windows install
 
@@ -132,9 +134,9 @@ The Authy VPN plugin comes with a script, that helps you register users.
 
 To start adding users type:
 
-    sudo authy_vpn_add_users 
+    sudo authy-vpn-add-users 
     
-    sudo authy_vpn_add_users
+    sudo authy-vpn-add-users
     This script is to add users to Authy Open VPN
     For each user you will need to provide the vpn login, e-mail, country code and cellphone
     For PAM, login is the *nix login or your PAM login username.
@@ -166,7 +168,7 @@ For example for `liz@authy.com` it would look:
 When liz is login in, she will type `liz@authy.com` as her username and the
 token as the password.
 
-You can edit this file by hand or using `authy_vpn_add_users`
+You can edit this file by hand or using `authy-vpn-add-users`
 
 ### With Certificates based Authentication
 
