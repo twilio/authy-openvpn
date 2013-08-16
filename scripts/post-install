@@ -1,6 +1,14 @@
 #!/bin/bash
 #This command need to be called like ./postinstall
 
+function check_root {
+    if [[ "$(whoami)" != "root" ]]
+    then
+        echo "Please run this command as root."
+        exit -1
+    fi
+}
+
 function add_configuration {
     local conf_file=$1
     local string_to_add=$2
@@ -36,7 +44,7 @@ function prephase {
       echo -n "Enter path to your openvpn configuration: "
       read serverconf
     fi
-    
+
     if [ ! -f "$serverconf" ] ; then
         echo "Config file not found. Make sure you enter the absolute path."
         return 1
@@ -63,9 +71,15 @@ function prephase {
         fi
         add_pam $serverconf $PAMSO "$pam_string"
     fi
+
+    echo ""
+    echo "All done. Now start adding users using 'sudo authy-vpn-add-users'"
 }
+
 DESTDIR=/usr/lib/authy
 AUTHYSO=$DESTDIR/authy-openvpn.so
 PAMSO=$DESTDIR/pam.so
 
+check_root
 prephase
+
