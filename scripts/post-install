@@ -22,14 +22,16 @@ function add_authy {
     local plugin=$2
     local key=$3
     local pam=$4
-    add_configuration $server_conf "plugin $plugin https://api.authy.com/protected/json $key $pam"
+
+    sed -ie '/authy/d' "$server_conf"
+    add_configuration "$server_conf" "plugin $plugin https://api.authy.com/protected/json $key $pam"
 }
 
 function add_pam {
     local server_conf=$1
     local plugin=$2
     local pam_string=$3
-    add_configuration $server_conf "plugin $plugin \"$pam_string\""
+    add_configuration "$server_conf" "plugin $plugin \"$pam_string\""
 }
 
 function prephase {
