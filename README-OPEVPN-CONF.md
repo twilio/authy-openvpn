@@ -52,8 +52,9 @@ Config is on `/etc/openvpn/server.conf`
 
 ## Server certificates
 
+    sudo cp -R /usr/share/doc/openvpn/examples/easy-rsa/2.0/ /etc/openvpn/easy-rsa
     cd /etc/openvpn/easy-rsa/ ## move to the easy-rsa directory
-    sudo chown -R root:admin .  ## make this directory writable by the system administrators
+    sudo chown -R root:adm .  ## make this directory writable by the system administrators
     sudo chmod g+w . ## make this directory writable by the system administrators
     source ./vars ## execute your new vars file
     ./clean-all  ## Setup the easy-rsa directory (Deletes all keys)
@@ -84,6 +85,7 @@ Now move the necessary keys to a folder
     mkdir ~/client-keys/
     cd /etc/openvpn/easy-rsa/keys
     sudo cp ca.crt client.crt ta.key client.key ~/client-keys/
+    sudo chown $USER -R ~/client-keys
 
 Now move client-keys to you client machine
 
