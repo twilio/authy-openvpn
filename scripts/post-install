@@ -13,7 +13,7 @@ function add_configuration {
     local conf_file=$1
     local string_to_add=$2
     echo "" >> $conf_file
-    echo "# This line was added by the authy openvpn installer" >> $conf_file
+    echo "# This line was added by the authy-openvpn installer" >> $conf_file
     echo "$string_to_add" >> $conf_file
 }
 
@@ -23,7 +23,7 @@ function add_authy {
     local key=$3
     local pam=$4
 
-    sed -ie '/authy/d' "$server_conf"
+    sed -ie '/authy-openvpn/d' "$server_conf"
     add_configuration "$server_conf" "plugin $plugin https://api.authy.com/protected/json $key $pam"
 }
 
