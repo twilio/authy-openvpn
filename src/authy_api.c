@@ -110,11 +110,11 @@ request(char *psz_url, char *psz_post_fields, char *psz_response)
   curl_easy_setopt(p_curl, CURLOPT_WRITEDATA, psz_response);
   
   i_res = (int) curl_easy_perform(p_curl);
-  debug(__LINE__, "curl response code %d, response %s\n", i_res, psz_response);
+  debug(__LINE__, "[Authy] Curl response: Code=%d, Body=%s\n", i_res, psz_response);
 exit:
   /* Always cleanup otherwise it will lead to memoryleaks */
 #ifdef WIN32
-  debug(__LINE__, "Can't clean curl, curl easy cleanup doesn't work on windows");
+  debug(__LINE__, "[Authy] Can't clean curl, curl easy cleanup doesn't work on windows");
 #else
   curl_easy_cleanup(p_curl);
 #endif

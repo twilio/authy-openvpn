@@ -178,7 +178,8 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
   psz_control     = get_env("auth_control_file", envp);
   psz_response    = (char *) calloc(255, sizeof(char));
 
-  debug(context->verb, __LINE__, "Starting");
+  debug(context->verb, __LINE__, "[Authy] Authy Two-Factor Authentication started\n");
+  debug(context->verb, __LINE__, "[Authy] Authenticating:  ");
 
   if(!psz_common_name || !psz_token || !psz_username || !psz_response){
     goto exit;
@@ -193,12 +194,12 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
       goto exit;
     }
   }
-  debug(context->verb, __LINE__, "username = %s, token = %s\n", psz_username, psz_token); 
+  debug(context->verb, __LINE__, "username=%s, token=%s ", psz_username, psz_token); 
   /* make a better use of envp to set the configuration file */
   if(get_authy_ID(AUTHYVPNCONF, psz_username, psz_common_name, psz_authy_ID) == FAILURE){
     goto exit;
   }
-  debug(context->verb, __LINE__, "authy_ID = %s\n", psz_authy_ID);
+  debug(context->verb, __LINE__, "and AUTHY_ID=%s\n", psz_authy_ID);
 
   if(!(verify((const char *) context->psz_API_url, (const char *) context->psz_API_key, psz_token, psz_authy_ID, psz_response) == SUCCESS &&
        parse_response(psz_response) == SUCCESS)){
@@ -209,13 +210,14 @@ authenticate(struct plugin_context *context, const char *argv[], const char *env
 
 exit:
   
-  debug(context->verb, __LINE__, "response %s", psz_response);
 
   p_file_auth = fopen(psz_control, "w");
   /* set the control file to '1' if suceed or to '0' if fail */
   if(i_status != SUCCESS){
+  debug(context->verb, __LINE__, "[Authy] Auth failed for %s\n", psz_username);
     fprintf(p_file_auth, "0");
   } else {
+    debug(context->verb, __LINE__, "[Authy] Auth success for %s\n", psz_username);
     fprintf(p_file_auth, "1");
   }
 
