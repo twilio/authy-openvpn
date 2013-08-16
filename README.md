@@ -41,7 +41,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 4. Restart your server (see below).
 
-5. Start adding users using `sudo authy-vpn-add-users` (see below).
+5. Start adding users using `sudo authy-vpn-add-user` (see below).
 
 #### Using Ubuntu and Debian packages
 
@@ -68,7 +68,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 4. Restart your server (see below).
 
-5. Start adding users using `sudo authy-vpn-add-users` (see below)
+5. Start adding users using `sudo authy-vpn-add-user` (see below)
 
 
 #### CentOS and RedHat based systems
@@ -88,7 +88,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 4. Restart your server (see below).
 
-5. Start adding users using `sudo authy-vpn-add-users` (see below)
+5. Start adding users using `sudo authy-vpn-add-user` (see below)
 
 ####  Windows install
 
@@ -134,9 +134,9 @@ The Authy VPN plugin comes with a script, that helps you register users.
 
 To start adding users type:
 
-    sudo authy-vpn-add-users 
+    sudo authy-vpn-add-user 
     
-    sudo authy-vpn-add-users
+    sudo authy-vpn-add-user
     This script is to add users to Authy Open VPN
     For each user you will need to provide the vpn login, e-mail, country code and cellphone
     For PAM, login is the *nix login or your PAM login username.
@@ -155,20 +155,20 @@ To start adding users type:
   
 ## How Authy-VPN works
 
-Authy stores it's configuration in the file `/etc/authy-vpn.conf`
+Authy stores it's configuration in the file `/etc/openvpn/authy/authy-vpn.conf`
 The files format is:
 
     username authy_id
 
 For example for `liz@authy.com` it would look:
 
-    sudo cat /etc/authy-vpn.conf
+    sudo cat /etc/openvpn/authy/authy-vpn.conf
     liz@authy.com 12323
 
 When liz is login in, she will type `liz@authy.com` as her username and the
 token as the password.
 
-You can edit this file by hand or using `authy-vpn-add-users`
+You can edit this file by hand or using `authy-vpn-add-user`
 
 ### With Certificates based Authentication
 
