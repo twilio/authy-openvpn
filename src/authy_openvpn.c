@@ -8,7 +8,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #else
-#define AUTHY_VPN_CONF "/etc/authy-vpn.conf"
+#define AUTHY_VPN_CONF "/etc/openvpn/authy/authy-vpn.conf"
 #endif
 
 #include <stdarg.h>

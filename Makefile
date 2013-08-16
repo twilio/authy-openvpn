@@ -44,8 +44,8 @@ install: $(BUILD_DIR)/$(LIBNAME).so $(BUILD_DIR)/vendor/$(PAM).so
 	cp $(BUILD_DIR)/$(LIBNAME).so $(BUILD_DIR)/vendor/$(PAM).so $(INSTDIR)
 	chmod 755 $(INSTDIR)/*.so
 	mkdir -p /usr/sbin
-	cp scripts/add-users /usr/sbin/authy-vpn-add-users
-	chmod 700 /usr/sbin/authy-vpn-add-users
+	cp scripts/authy-vpn-add-user /usr/sbin/authy-vpn-add-user
+	chmod 700 /usr/sbin/authy-vpn-add-user
 
 clean:
 	rm -rf $(BUILD_DIR)
