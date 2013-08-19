@@ -13,27 +13,14 @@
 
 #include <stdarg.h>
 
-#include "authy-conf.h"
+#include "vendor/jsmn/jsmn.h"
+
 #include "openvpn-plugin.h"
-#include "jsmn.h"
+#include "authy_conf.h"
 #include "authy_api.h"
+#include "utils.h"
+#include "logger.h"
 
-static int debug(const int verb, const int line, const char *format, ...)
-{
-	if(verb >= 4)
-	{
-		printf("Authy Plugin: %d\t", line);
-		va_list arg;
-		int done;
-
-    va_start(arg, format);
-    done = vfprintf (stderr, format, arg);
-    va_end(arg);
-    fflush(stderr);
-    return done;
-	}
-	return 0;
-}
 
 /*
  * This state expects the following config line
@@ -45,12 +32,29 @@ static int debug(const int verb, const int line, const char *format, ...)
  * nopam = 0;
  */
 struct plugin_context {
-  char *psz_API_url;
-  char *psz_API_key;
-  int b_PAM;
-  int verb;
+  char *pszApiUrl;
+  char *pszApiKey;
+  int bPAM;
+  int verbosity;
 };
 
+
+
+// Description
+//
+// Given an environmental variable name, search
+// the envp array for its value, returning it
+//
+// Parameters
+// 
+//   name            - Name of the enviromental
+//   envp            - The environment 
+//
+// Returns
+// 
+// The value of the env variable or NULL otherwise
+// if not found
+//
 /*
  * Given an environmental variable name, search
  * the envp array for its value, returning it
@@ -58,17 +62,17 @@ struct plugin_context {
  * From openvpn/sample/sample-plugins/defer/simple.c
  */
 static char *
-get_env(const char *name, const char *envp[])
+getEnv(const char *name, const char *envp[])
 {
   if (envp)
   {
     int i;
-    const int namelen = strlen (name);
+    const int nameLength = strlen(name);
     for (i = 0; envp[i]; ++i)
     {
-      if (!strncmp (envp[i], name, namelen))
+      if (!strncmp (envp[i], name, nameLength))
       {
-        const char *cp = envp[i] + namelen;
+        const char *cp = envp[i] + nameLength;
         if (*cp == '=')
           return (char *) cp + 1;
       }
@@ -77,44 +81,61 @@ get_env(const char *name, const char *envp[])
   return NULL;
 }
 
-/*
- * Plugin initialization
- * it registers the functions that we want to intercept (OPENVPN_PLUGIN_AUTH_USER_PASS_VERIFY)
- * and initializes the plugin context that holds the api url, api key and if we are using PAM
- */
+
+
+// Description
+//
+// Registers the functions that we want to intercept (OPENVPN_PLUGIN_AUTH_USER_PASS_VERIFY)
+// and initializes the plugin context that holds the api url, api key and if we are using PAM
+//
+// Parameters
+// 
+//   type_mask            - Name of the enviromental
+//   argv                 - arguments
+//   envp                 - The environment 
+//
+// Returns
+// 
+// The handle to the plugin
+//
 OPENVPN_EXPORT openvpn_plugin_handle_t
-openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[], const char *envp[])
+openvpn_plugin_open_v1(unsigned int *type_mask, 
+                       const char *argv[], 
+                       const char *envp[])
 {
   /* Context Allocation */
   struct plugin_context *context;
 
   context = (struct plugin_context *) calloc(1, sizeof(struct plugin_context));
   
-  if(!context){
-    goto error;
+  if(NULL == context){
+		trace(ERROR, __LINE__, "[Authy] Failed to allocate context\n");
+    return (openvpn_plugin_handle_t)FAIL;
   }
+
   /* Save the verbosite level from env */
-  const char *verb_string = get_env ("verb", envp);
-  if (verb_string){
-	context->verb = atoi (verb_string);
+  const char *verbosity = getEnv("verb", envp);
+  if (verbosity){
+    context->verbosity = (int)strtol(verbosity, (char **)NULL, 10);
   }
 
   if(argv[1] && argv[2])
   {
-	debug(context->verb, __LINE__, "Plugin path = %s\n", argv[0]);
-	debug(context->verb, __LINE__, "api url = %s, api key %s\n", argv[1], argv[2]); 
-    context->psz_API_url = (char *) calloc(strlen(argv[1]) + 1, sizeof(char));
-    strncpy(context->psz_API_url, argv[1], strlen(argv[1]));
+    trace(DEBUG, __LINE__, "Plugin path = %s\n", argv[0]);
+    trace(DEBUG, __LINE__, "Api URL = %s, api key %s\n", argv[1], argv[2]); 
+    context->pszApiUrl = (char *) calloc(strlen(argv[1]) + 1, sizeof(char));
+    strncpy(context->pszApiUrl, argv[1], strlen(argv[1]));
 
-    context->psz_API_key = (char *) calloc(strlen(argv[2]) + 1, sizeof(char));
-    strncpy(context->psz_API_key, argv[2], strlen(argv[2]));
+    context->pszApiKey = (char *) calloc(strlen(argv[2]) + 1, sizeof(char));
+    strncpy(context->pszApiKey, argv[2], strlen(argv[2]));
 
-    context->b_PAM  = 0;
+    context->bPAM  = 0;
 	
   }
 
-  if (argv[3] && strncmp(argv[3], "pam", 3) == SUCCESS)
-    context->b_PAM = 1;
+  if (argv[3] && strncmp(argv[3], "pam", 3) == 0){
+    context->bPAM = 1;
+  }
 
   /* Set type_mask, a.k.a callbacks that we want to intercept */
   *type_mask = OPENVPN_PLUGIN_MASK(OPENVPN_PLUGIN_AUTH_USER_PASS_VERIFY);
@@ -122,117 +143,177 @@ openvpn_plugin_open_v1(unsigned int *type_mask, const char *argv[], const char *
   /* Cast and return the context */
   return (openvpn_plugin_handle_t) context;
 
-error:
-  return (openvpn_plugin_handle_t)FAILURE;
 }
 
-/*
- * parse response
- * it tokenizes the json response from the api, and traverse looking for the 'success' node
- */
-static int
-parse_response(char *psz_response)
+
+
+// Description
+//
+//  Goes through the response body looking for success. Else assumes failure
+//  
+// Parameters
+// 
+//   pszRespone           - Response body in json format
+//
+// Returns
+// 
+// Standard RESULT
+//
+static RESULT
+responseWasSuccessful(char *pszResponse)
 {
   int cnt;
   jsmn_parser parser;
   jsmn_init(&parser);
   jsmntok_t tokens[20];
-  jsmn_parse(&parser, psz_response, tokens, 20);
+  jsmn_parse(&parser, pszResponse, tokens, 20);
 
   /* success isn't always on the same place, look until 19 because it
      shouldn't be the last one because it won't be a key */
   for (cnt = 0; cnt < 19; ++cnt)
   {
-    if(strncmp(psz_response + (tokens[cnt]).start, "success", (tokens[cnt]).end - (tokens[cnt]).start) == 0)
+    if(strncmp(pszResponse + (tokens[cnt]).start, "success", (tokens[cnt]).end - (tokens[cnt]).start) == 0)
     {
-      if(strncmp(psz_response + (tokens[cnt+1]).start, "true", (tokens[cnt+1]).end - (tokens[cnt+1]).start) == 0){
-        return SUCCESS;
+      if(strncmp(pszResponse + (tokens[cnt+1]).start, "true", (tokens[cnt+1]).end - (tokens[cnt+1]).start) == 0){
+        return OK;
       } else {
-        return FAILURE;
+        return FAIL;
       }
     }
   }
-  return FAILURE;
+	return FAIL;
 }
 
-/*
- * authenticate
- * this is real core of the plugin
- * it handles the authentication agains Authy services
- * using the password field to obtain the OTP
- * and as other authentication plugins it sets its authenication status
- * to the control file
- */
-static int
-authenticate(struct plugin_context *context, const char *argv[], const char *envp[])
+
+
+// Description
+//
+// This is real core of the plugin
+// it handles the authentication agains Authy services
+// using the password field to obtain the OTP
+// and as other authentication plugins it sets its authenication status
+// to the control file
+//  
+// Parameters
+// 
+//   pszRespone           - Response body in json format
+//
+// Returns
+// 
+// Standard RESULT
+//
+static RESULT
+authenticate(struct plugin_context *context, 
+             const char *argv[], 
+             const char *envp[])
 {
-  int i_status;
-  char *psz_token, *psz_control, *psz_response, *psz_common_name, *psz_username;
-  char  psz_authy_ID[20];
-  FILE *p_file_auth;
+  RESULT r = FAIL;
+  char *pszToken = NULL;
+  char *pszControl = NULL;
+  char *pszResponse = NULL;
+  char *pszCommonName = NULL;
+  char *pszUsername = NULL;
+  char *pszAuthyId = NULL;
+  FILE *fpAuthFile = NULL;
 
-  i_status = FAILURE;
 
-  psz_common_name = get_env("common_name", envp);
-  psz_username    = get_env("username", envp);
-  psz_token       = get_env("password", envp);
-  psz_control     = get_env("auth_control_file", envp);
-  psz_response    = (char *) calloc(255, sizeof(char));
+  pszCommonName =  getEnv("common_name", envp);
+  pszUsername    = getEnv("username", envp);
+  pszToken       = getEnv("password", envp);
+  pszControl     = getEnv("auth_control_file", envp);
+  pszResponse    = (char *) calloc(255, sizeof(char));
 
-  debug(context->verb, __LINE__, "[Authy] Authy Two-Factor Authentication started\n");
-  debug(context->verb, __LINE__, "[Authy] Authenticating:  ");
+  trace(INFO, __LINE__, "[Authy] Authy Two-Factor Authentication started\n");
+  trace(INFO, __LINE__, "[Authy] Authenticating:  ");
 
-  if(!psz_common_name || !psz_token || !psz_username || !psz_response){
-    goto exit;
-  }
-
-  if(context->b_PAM)
-  {
-    const int is_token = strlen(psz_token);
-    if(is_token > AUTHY_TOKEN_SIZE){
-      psz_token = psz_token + (is_token - AUTHY_TOKEN_SIZE);
-    } else {
-      goto exit;
-    }
-  }
-  debug(context->verb, __LINE__, "username=%s, token=%s ", psz_username, psz_token); 
-  /* make a better use of envp to set the configuration file */
-  if(get_authy_ID(AUTHY_VPN_CONF, psz_username, psz_common_name, psz_authy_ID) == FAILURE){
-    goto exit;
-  }
-  debug(context->verb, __LINE__, "and AUTHY_ID=%s\n", psz_authy_ID);
-
-  if(!(verify((const char *) context->psz_API_url, (const char *) context->psz_API_key, psz_token, psz_authy_ID, psz_response) == SUCCESS &&
-       parse_response(psz_response) == SUCCESS)){
-    goto exit;
-  }
-
-  i_status = SUCCESS;
-
-exit:
   
-
-  p_file_auth = fopen(psz_control, "w");
-  /* set the control file to '1' if suceed or to '0' if fail */
-  if(i_status != SUCCESS){
-  debug(context->verb, __LINE__, "[Authy] Auth finished. Result: auth failed for username %s with token %s\n", psz_username, psz_token);
-    fprintf(p_file_auth, "0");
-  } else {
-    debug(context->verb, __LINE__, "[Authy] Auth finished. Result: auth success for username %s\n", psz_username);
-    fprintf(p_file_auth, "1");
+  if(!pszCommonName || !pszToken || !pszUsername || !pszResponse || !pszControl){
+    r = FAIL;
+    goto EXIT;
   }
 
-  memset(psz_token, 0, (strlen(psz_token))); /* Avoid to letf some sensible bits */
-  fclose(p_file_auth);
-  free(psz_response);
-  return i_status;
+  fpAuthFile = fopen(pszControl, "w");
+  if(NULL == fpAuthFile){
+    r = FAIL;
+    goto EXIT;
+  }  
+  
+  if(context->bPAM)
+  {
+//TODO: Separate token from Password. Remember hardware tokens are 6 in
+//length
+  }
+
+  trace(INFO, __LINE__, "username=%s, token=%s ", pszUsername, pszToken); 
+  /* make a better use of envp to set the configuration file */
+
+  r = getAuthyId(pszAuthyId,
+								AUTHY_VPN_CONF, 
+                pszUsername, 
+                pszCommonName); 
+
+  if(FAILED(r)){
+		trace(ERROR, __LINE__, "Failed to get Authy ID for username\n");
+    r = FAIL;
+    goto EXIT;
+  }
+
+  trace(INFO, __LINE__, "and AUTHY_ID=%s\n", pszAuthyId);
+
+
+  //CAREFUL HERE USING RESULT, both conditions need to be OK
+  if(
+			SUCCESS(
+						verifyToken( (const char *) context->pszApiUrl, 
+                    pszToken, 
+                    pszAuthyId, 
+                    (const char *) context->pszApiKey, 
+                    pszResponse)
+            )
+   && 
+			SUCCESS(responseWasSuccessful(pszResponse))
+	)
+	{
+     r = OK;
+     goto EXIT;
+  }
+
+  r = FAIL;
+
+EXIT:
+  
+  if(fpAuthFile){
+    /* set the control file to '1' if suceed or to '0' if fail */
+    if(SUCCESS(r)){
+      trace(INFO, __LINE__, "[Authy] Auth finished. Result: auth failed for username %s with token %s\n", pszUsername, pszToken);
+      fprintf(fpAuthFile, "0");
+    } else {
+      trace(INFO, __LINE__, "[Authy] Auth finished. Result: auth success for username %s\n", pszUsername);
+      fprintf(fpAuthFile, "1");
+    }
+    fclose(fpAuthFile); 
+  }
+	if(pszAuthyId) {cleanAndFree(pszAuthyId);}
+  if(pszToken) { memset(pszToken, 0, (strlen(pszToken))); } // Cleanup any sensible data
+  if(pszResponse) { cleanAndFree(pszResponse);};
+  return r;
 }
 
-/*
- * Dispatcher
- * this is the function that is called when one of the registered functions of the vpn
- * is called
- */
+
+
+// Description
+//
+// This is the function that is called when one of the registered functions of the vpn
+// are called
+//  
+// Parameters
+// 
+//   pszRespone           - Response body in json format
+//
+// Returns
+// 
+// Standard 0 is success, or something else otherwise.
+//
 OPENVPN_EXPORT int
 openvpn_plugin_func_v1(openvpn_plugin_handle_t handle, const int type, const char *argv[], const char *envp[])
 {
@@ -253,7 +334,7 @@ OPENVPN_EXPORT void
 openvpn_plugin_close_v1(openvpn_plugin_handle_t handle)
 {
   struct plugin_context *context = (struct plugin_context *) handle;
-  free(context->psz_API_url);
-  free(context->psz_API_key);
+  cleanAndFree(context->pszApiUrl);
+  cleanAndFree(context->pszApiKey);
   free(context);
 }

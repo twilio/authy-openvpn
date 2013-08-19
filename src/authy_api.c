@@ -1,255 +1,392 @@
+//------------------------------------------------------------------------------
+//
+// Copyright (c) Authy Inc.
+//
+// Name
+//
+//   authy_api.c
+//
+// Abstract
+// 
+// Implements the public Authy API using json. Uses CURL to do multi-platform HTTPS request.
+// 
+// registerUser
+// verifyToken
+// requestSMS
+// 
+//
+//
+// History
+//
+//  8/1/2013    dpalacio    Created
+//
+//------------------------------------------------------------------------------
+
+
 #include <stdarg.h>
 #include <curl/curl.h>
 
+#include "utils.h"
+#include "logger.h"
 #include "authy_api.h"
 #ifdef WIN32
 #define snprintf _snprintf
 #endif
 
-#define SUCCESS 0
-#define FAILURE 1
 
-#define VERB 4
-static int debug(const int line, const char *format, ...)
-{
-	if(VERB >= 4)
-	{
-		printf("Authy Plugin: %d\t", line);
-		va_list arg;
-		int done;
+//
+// Description
+//
+// Given the url, endpoint, params and keys, calculates the size
+// of the URL
+//
+// Parameters
+// 
+// pszApiUrl   - Server URL
+// pszEndPoint - The API endpoint including format  
+// pszParams   - The endpoint params.
+// pszApiKey   - The Authy API key.
+//
+// Returns
+//
+// The size of the URL to be allocated.
+// 
+//
 
-        va_start(arg, format);
-        done = vfprintf(stderr, format, arg);
-        va_end (arg);
-		fflush(stderr);
-        return done;
-	}
-	return 0;
-}
-
-/*
- * clean and free
- * Sets the used memory to null and then frees it
- */
-char *
-clean_and_free(void * p_target)
-{
-  if(p_target != NULL) {
-    memset(p_target, 0, sizeof p_target);
-    free(p_target);
-  }
-  return NULL;
-}
-
-/*
- * url size
- * calls the size need for an api url
- */
 static size_t
-calc_url_size(const char *psz_API_url, const char *psz_end_point, const char *psz_API_key, const char *psz_params)
+calcUrlSize(const char *pszApiUrl, 
+            const char *pszEndPoint,  
+            const char *pszParams, 
+            const char *pszApiKey)
 {
-  return strlen(psz_API_url) + strlen(psz_end_point) + strlen(psz_params) + strlen(psz_API_key) + 1;
+  return strlen(pszApiUrl) + strlen(pszEndPoint) + strlen(pszParams) + strlen(pszApiKey) + 1;
 }
 
-/* url builder
- * builds the url and save it to psz_url
- * and returns the actual size of the url
- */
-static char*
-url_builder(const char *psz_API_url, const char *psz_API_key, char *psz_end_point, char *psz_params)
+//
+// Description
+// 
+// Allocates teh memory and build the URL of the enpoind including 
+// params.
+//
+// Parameters
+// 
+// pResultUrl - A pointer to where the URL will be stored
+// pszApiUrl   - Server URL
+// pszEndPoint - The API endpoint including format  
+// pszParams   - The endpoint params.
+// pszApiKey   - The Authy API key.
+//
+// Returns
+//
+// Standard RESULT  
+//
+RESULT
+buildUrl(char       *pszResultUrl, 
+         const char *pszApiUrl, 
+         const char *pszEndPoint,  
+         const char *pszParams, 
+         const char *pszApiKey)
 {
-  char *psz_url = NULL;
-  size_t url_size = calc_url_size(psz_API_url, psz_end_point, psz_API_key, psz_params);
+  RESULT r = FAIL;
 
-  psz_url = calloc(url_size, sizeof(char));
-  if(!psz_url){
-    goto error;
+  size_t urlSize = calcUrlSize(pszApiUrl, 
+                               pszEndPoint, 
+                               pszParams, 
+                               pszApiKey);
+
+  pszResultUrl = calloc(urlSize, sizeof(char));
+  if(NULL == pszResultUrl){
+    trace(ERROR, __LINE__, "[Authy] Out of Memory: Malloc failed.");
+    r = OUT_OF_MEMORY;
+    goto EXIT;
   }
 
-  snprintf(psz_url, url_size, "%s%s%s%s", psz_API_url, psz_end_point, psz_params, psz_API_key);
+  snprintf(pszResultUrl, 
+           urlSize, 
+           "%s%s%s%s", 
+           pszApiUrl, pszEndPoint, pszParams, pszApiKey);
 
-  return psz_url;
+  trace(DEBUG, __LINE__, "[Authy] BuilUrl pszResultUrl=%s\n.", pszResultUrl);
+  r = OK;
 
-error:
-  debug(__LINE__, "[Authy] memory error: malloc failed.");
-  return NULL;
+EXIT:
+  return r;
 }
 
-/*
- * custom writer
- * this an auxiliar function for curl
- * it redirects the output of the libcurl to a buffer
- */
+
+//
+// Description
+//
+// This an auxiliar function that curl uses
+// it redirects the output of the libcurl to a buffer
+//
 static size_t
-custom_writer(char *ptr, size_t size, size_t nmemb, void *userdata)
+customWriter(char *ptr, 
+             size_t size, 
+             size_t nmemb, 
+             void *userdata)
 {
   char *temp = (char *) userdata;
   memcpy(temp, ptr, (size_t) size * nmemb);
   return nmemb*size;
 }
 
-/*
- * request
- * this method handles the request to the api
- * it knows when to make a GET or a POST based
- * on the present of psz_post_fields
- *
- * Returns:
- *   SUCCESS: request was success.
- *   FAILURE: curl failed.
- */
-static int
-request(char *psz_url, char *psz_post_fields, char *psz_response)
+
+//
+// Description
+//
+// Handles the request to the api
+// it knows when to do a GET or a POST based
+// on the present of pszPostFields 
+//
+// Parameters
+// 
+// pszResultUrl         - The full URL
+// pszPostFields  - POST fields if it's a POST request or NULL for GET request
+// pszEndPoint - The API endpoint including format  
+// pszParams   - The endpoint params.
+// pszApiKey   - The Authy API key.
+//
+// Returns
+//
+// Standard RESULT  
+//
+RESULT
+request(char *pszResultUrl, char *pszPostFields, char *pszResponse)
 {
-  CURL *p_curl;
-  int res = FAILURE;
+  RESULT r = FAIL;
+  CURL *pCurl = NULL;
+  int curlResult = -1;
 
   curl_global_init(CURL_GLOBAL_ALL);
 
-  p_curl = curl_easy_init();
-  if(!p_curl){
-    goto exit;
+  pCurl = curl_easy_init();
+  if(!pCurl){
+    r = FAIL;
+    trace(ERROR, __LINE__, "[Authy] CURL failed to initialize"); 
+    goto EXIT;
   }
 
-  curl_easy_setopt(p_curl, CURLOPT_URL, psz_url);
+  curl_easy_setopt(pCurl, CURLOPT_URL, pszResultUrl);
 
-  if(psz_post_fields){
-    curl_easy_setopt(p_curl, CURLOPT_POSTFIELDS, psz_post_fields);
+  if(pszPostFields){// POST REQUEST
+    curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, pszPostFields);
   }
-  /* These options determines whether curl verifies the authenticity of the peer's certificate */
 
 #ifdef WIN32
   curl_easy_setopt(p_curl, CURLOPT_CAINFO, "curl-bundle-ca.crt");
 #endif
 
-  curl_easy_setopt(p_curl, CURLOPT_SSL_VERIFYPEER, 1L);
-  curl_easy_setopt(p_curl, CURLOPT_VERBOSE, 1L);
-  curl_easy_setopt(p_curl, CURLOPT_WRITEFUNCTION, custom_writer);
-  curl_easy_setopt(p_curl, CURLOPT_WRITEDATA, psz_response);
+  curl_easy_setopt(pCurl, CURLOPT_SSL_VERIFYPEER, 1L); //verify PEER certificate
+  curl_easy_setopt(pCurl, CURLOPT_SSL_VERIFYHOST, 2L); //verify HOST certificate
+  curl_easy_setopt(pCurl, CURLOPT_VERBOSE, 1L);
+  curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, customWriter);
+  curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, pszResponse);
   
-  res = (int) curl_easy_perform(p_curl);
-  if(res != 0) {
-    debug(__LINE__, "Curl failed with code %d", res);
-    res = FAILURE;
-    goto exit;
+  curlResult = (int) curl_easy_perform(pCurl);
+  if(curlResult != 0) {
+    trace(ERROR, __LINE__, "Curl failed with code %d", curlResult);
+    r = FAIL;
+    goto EXIT;
   }
 
-  debug(__LINE__, "[Authy] Curl response: Body=%s\n", psz_response);
-  res = SUCCESS;
-exit:
-  /* Always cleanup otherwise it will lead to memoryleaks */
+  trace(INFO, __LINE__, "[Authy] Curl response: Body=%s\n", pszResponse);
+  r = OK;
+
+EXIT:
+
 #ifdef WIN32
-  debug(__LINE__, "[Authy] Can't clean curl, curl easy cleanup doesn't work on windows");
+  trace(DEBUG, __LINE__, "[Authy] Can't clean curl, curl easy cleanup doesn't work on Windows");
 #else
-  curl_easy_cleanup(p_curl);
+  if(pCurl){
+    curl_easy_cleanup(pCurl);
+  }
 #endif
 
-  return res;
+  return r;
 }
 
-/*
- * Enable two-factor on a specific user
- * it sends a POST to https://api.authy.com/protected/{FORMAT}/users/new?api_key={KEY}
- *
- * returns:
- *   SUCCESS: if the user was added correctly.
- *   FAILURE: failed to add user.
- */
-extern int
-register_user(const char *psz_API_url, const char *psz_API_key, char *psz_post_fields, char *psz_response)
+
+//
+// Description
+//
+// Calls the new user Authy API API
+//
+// Parameters
+// 
+// pszApiUrl    - The server URL
+// pszPostFields  - POST fields if it's a POST request 
+// pszEndPoint - The API endpoint including format  
+// pszParams   - The endpoint params.
+// pszApiKey   - The Authy API key.
+//
+// Returns
+//
+// Standard RESULT  
+//
+extern RESULT
+registerUser(const char *pszApiUrl, 
+              char *pszPostFields, 
+              const char *pszApiKey, 
+              char *pszResponse)
 {
-  int res = FAILURE;
-  char *psz_url = NULL;
-  char *psz_end_point = "/users/new";
-  char *psz_params = "?api_key=";
+  int r = FAIL;
+  char *pszResultUrl = NULL;
+  char *pszEndPoint = "/users/new";
+  char *pszParams = "?api_k)y=";
+  r = buildUrl(pszResultUrl, 
+               pszApiUrl, 
+               pszEndPoint,  
+               pszParams, 
+               pszApiKey);
 
-  psz_url = url_builder(psz_API_url, psz_API_key, psz_end_point, psz_params);
-
-  if(psz_url == NULL) {
-    goto error;
+  if(FAILED(r)){
+    goto EXIT;
   }
 
-  res = request(psz_url, psz_post_fields, psz_response);
+  r = request(pszResultUrl, pszPostFields, pszResponse);
+  
+  // Clean memory used in the request
+  cleanAndFree(pszResultUrl);
+  pszResultUrl = NULL;
 
-  psz_url = clean_and_free(psz_url);
+  if(FAILED(r)){
+    trace(ERROR, __LINE__, "[Authy] User Registration Failed\n");
+    goto EXIT;
+  }
 
-  return res;
+  r = OK;  
 
-error:
-  return FAILURE;
+EXIT:
+  return r;
 }
 
-/*
- * verify
- * verifies a token
- * it sends a GET to https://api.authy.com/protected/{FORMAT}/verify/{TOKEN}/{AUTHY_ID}?api_key={KEY}
- */
-extern int
-verify(const char *psz_API_url, const char *psz_API_key, char *psz_token, char *psz_authy_ID, char *psz_response)
+
+
+//
+// Description
+//
+// Calls the verify Authy API using force=true
+//
+// Does a GET to https://api.authy.com/protected/{FORMAT}/verify/{TOKEN}/{AUTHY_ID}?force=true&api_key={KEY}
+// Parameters
+// 
+// pszApiUrl      - The server URL
+// pszToken       - The token entered by the user 
+// pszAuthyId     - The Authy ID fo the user 
+// pszApiKey      - The Authy API key
+// pszResponse    - Pointer to where the response will be stored.
+//
+// Returns
+//
+// Standard RESULT  
+//
+extern RESULT
+verifyToken(const char *pszApiUrl, 
+            char *pszToken, 
+            char *pszAuthyId, 
+            const char *pszApiKey, 
+            char *pszResponse)
 {
-  int res = FAILURE;
-  size_t end_point_size = 0;
-  char *psz_url = NULL;
-  char *psz_end_point = NULL;
-  char *psz_params = "?force=true&api_key=";
+  RESULT r = FAIL;
+  size_t endPointSize = 0;
+  char *pszResultUrl = NULL;
+  char *pszEndPoint = NULL;
+  char *pszParams = "?force=true&api_key=";
 
-  end_point_size = strlen("/verify/") + strlen(psz_token) + strlen("/") + strlen(psz_authy_ID) + 1;
-  psz_end_point = calloc(end_point_size, sizeof(char));
-  if(!psz_end_point){
-    res = FAILURE;
-    goto exit;
+  endPointSize = strlen("/verify/") + strlen(pszToken) + strlen("/") + strlen(pszAuthyId) + 1;
+  pszEndPoint = calloc(endPointSize, sizeof(char));
+  if(!pszEndPoint){
+    r = FAIL;
+    goto EXIT;
   }
 
-  snprintf(psz_end_point, end_point_size, "/verify/%s/%s", psz_token, psz_authy_ID);
-  psz_url = url_builder(psz_API_url, psz_API_key, psz_end_point, psz_params);
+  snprintf(pszEndPoint, endPointSize, "/verify/%s/%s", pszToken, pszAuthyId);
 
-  if(!psz_url) {
-    res = FAILURE;
-    goto exit;
+  r = buildUrl(pszResultUrl, 
+               pszApiUrl, 
+               pszEndPoint,  
+               pszParams, 
+               pszApiKey);
+
+  if(FAILED(r)) {
+    trace(INFO, __LINE__, "[Authy] URL for Token verification failed\n");
+    goto EXIT;
   }
 
-  res = request(psz_url, NULL, psz_response);
+  r = request(pszResultUrl, NULL, pszResponse); //GET request, postFields are NULL
+  
+  if(FAILED(r)) {
+    trace(INFO, __LINE__, "[Authy] Token request verification failed\n");
+    goto EXIT;
+  }
 
 
-exit:
-  psz_url = clean_and_free(psz_url);
-  psz_end_point = clean_and_free(psz_end_point);
+EXIT:
+  cleanAndFree(pszResultUrl);
+  pszResultUrl = NULL;
+  cleanAndFree(pszEndPoint);
+  pszEndPoint = NULL;
 
-  return res;
+  return r;
 }
 
-/*
- * request sms
- * it requests for sms tokens
- * sends a GET to https://api.authy.com/protected/{FORMAT}/sms/{AUTHY_ID}?api_key={KEY}
- */
-extern int
-request_sms(const char *psz_API_url, const char *psz_API_key, char *psz_authy_ID, char *psz_response)
+///
+// Description
+//
+// Calls the request SMS Authy API. 
+// 
+//
+// Parameters
+// 
+// pszApiUrl      - The server URL
+// pszAuthyId     - The Authy ID fo the user 
+// pszApiKey      - The Authy API key
+// pszResponse    - Pointer to where the response will be stored.
+//
+// Returns
+//
+// Standard RESULT  
+//
+extern RESULT
+requestSms(const char *pszApiUrl, 
+            char *pszAuthyId, 
+            const char *pszApiKey, 
+            char *pszResponse)
 {
-  int res = FAILURE;
-  size_t end_point_size = 0;
-  char *psz_url = NULL;
-  char *psz_end_point = NULL;
-  char *psz_params = "?api_key=";
+  int r = FAIL;
+  size_t endPointSize = 0;
+  char *pszResultUrl = NULL;
+  char *pszEndPoint = NULL;
+  char *pszParams = "?api_key=";
 
-  end_point_size = strlen("/sms/") + strlen(psz_authy_ID) + 1;
-  psz_end_point = calloc(end_point_size, sizeof(char));
-  if(!psz_end_point){
-    goto exit;
-  }
-  snprintf(psz_end_point, end_point_size, "/sms/%s", psz_authy_ID);
-
-  psz_url = url_builder(psz_API_url, psz_API_key, psz_end_point, psz_params);
-  if(!psz_url) {
-    res = FAILURE;
-    goto exit;
+  endPointSize = strlen("/sms/") + strlen(pszAuthyId) + 1;
+  pszEndPoint = calloc(endPointSize, sizeof(char));
+  if(NULL == pszEndPoint){
+    r = OUT_OF_MEMORY;
+    goto EXIT;
   }
 
-  res = request(psz_url, NULL, psz_response);
+  snprintf(pszEndPoint, endPointSize, "/sms/%s", pszAuthyId);
 
-exit:
-  psz_url = clean_and_free(psz_url);
-  psz_end_point = clean_and_free(psz_end_point);
+  r = buildUrl(pszResultUrl, 
+               pszApiUrl, 
+               pszEndPoint,  
+               pszParams, 
+               pszApiKey);
 
-  return res;
+  if(FAILED(r)) {
+    r = FAIL;
+    goto EXIT;
+  }
+
+  r = request(pszResultUrl, NULL, pszResponse);
+
+EXIT:
+  cleanAndFree(pszResultUrl);
+  pszResultUrl = NULL;
+  cleanAndFree(pszEndPoint);
+  pszEndPoint = NULL;
+
+  return r;
 }
