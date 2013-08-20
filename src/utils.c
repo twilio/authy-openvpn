@@ -17,12 +17,15 @@
 //
 //------------------------------------------------------------------------------
 
+#include <string.h>
+#include <stdlib.h>
+#include <assert.h>
 
-
+//
 // Description
 //
-// Memsets the pointer to 0's and free's it if is not NULL 
-// Ignores it otherwise
+// Memsets the pointer string to 0's and free's it if is not NULL. 
+// Ignores it otherwise.
 //
 // Parameters
 // 
@@ -36,7 +39,7 @@ cleanAndFree(void *pszPtr)
 {
 	size_t length = 0;
   if(NULL != pszPtr)  {
-		length = strlen(pzsPtr); 
+		length = strlen(pszPtr); 
     memset(pszPtr, 0, sizeof(char)*length);
     free(pszPtr);
   }
@@ -56,15 +59,18 @@ cleanAndFree(void *pszPtr)
 // 
 // void 
 //
-void removeSpaces(char* pszString)
+void 
+removeSpaces(char* pszString)
 {
+  assert(pszString != NULL);
+
   char* i = pszString;
   char* j = pszString;
 
   while(*j != '\0')
   {
     if(*i != ' ' && *i != '\n' && *i != '\r' && *i != '\t'){
-      *i = *j
+      *i = *j;
       i++;
     }
     j++;

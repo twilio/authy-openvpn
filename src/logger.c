@@ -1,3 +1,32 @@
+#include <stdarg.h>
+//------------------------------------------------------------------------------
+//
+// Copyright (c) Authy Inc.
+//
+// Name
+//
+//   logger.c
+//
+// Abstract
+// 
+// Implements a re-usable logger
+// 
+// registerUser
+// verifyToken
+// requestSMS
+// 
+//
+//
+// History
+//
+//  8/2/2013    dpalacio    Created
+//
+//------------------------------------------------------------------------------
+
+#include <stdio.h>
+#include <stdarg.h>
+
+
 //
 // Description
 //
@@ -22,14 +51,13 @@
 #endif
 
 void 
-trace(const int level, const int line, const char *msg, ...)
+trace(const int level, const int line, const char *format, ...)
 {
   if(level <= g_logLevel)
 	{
 		va_list arg;
-		int done;
     va_start(arg, format);
-    done = vfprintf(stderr, format, arg);
+    vfprintf(stderr, format, arg);
     va_end (arg);
 		fflush(stderr);
 	}

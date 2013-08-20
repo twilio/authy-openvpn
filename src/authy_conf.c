@@ -65,11 +65,11 @@ EXIT:
 
 // Description
 //
-// Remove spaces from a NULL terminated String
+// Checks that the username is valid
 //
 // Parameters
 // 
-//   pszString - A NULL terminated string containing spaces
+//   pszUsername - The username to test 
 //
 // Returns
 // 

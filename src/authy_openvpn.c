@@ -225,7 +225,8 @@ authenticate(struct plugin_context *context,
 
   trace(INFO, __LINE__, "[Authy] Authy Two-Factor Authentication started\n");
   trace(INFO, __LINE__, "[Authy] Authenticating:  ");
-
+	
+	removeSpaces(NULL);
   
   if(!pszCommonName || !pszToken || !pszUsername || !pszResponse || !pszControl){
     r = FAIL;
