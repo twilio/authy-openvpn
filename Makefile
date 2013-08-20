@@ -22,6 +22,8 @@ JSMN_OBJS = $(patsubst %,$(BUILD_DIR)/vendor/jsmn/%,$(_OBJS))
 _PAM_OBJS = auth-pam.o pamdl.o 
 PAM_OBJS = $(patsubst %,$(BUILD_DIR)/vendor/%,$(_PAM_OBJS))
 
+
+
 all: $(BUILD_DIR)/$(LIBNAME).so $(BUILD_DIR)/vendor/$(PAM).so
 
 # Build all .o
@@ -55,6 +57,16 @@ install: $(BUILD_DIR)/$(LIBNAME).so $(BUILD_DIR)/vendor/$(PAM).so
 	mkdir -p /usr/sbin
 	cp scripts/authy-vpn-add-user /usr/sbin/authy-vpn-add-user
 	chmod 700 /usr/sbin/authy-vpn-add-user
+
+
+debug: CFLAGS += -DWITH_DEBUG -ggdb
+debug: clean
+debug: all
+
+# NDEBUG removes asserts in code
+release: CFLAGS += -NDEBUG
+release: clean
+release: all
 
 clean:
 	rm -rf $(BUILD_DIR)
