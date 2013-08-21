@@ -28,5 +28,6 @@
 
 #define MAX_AUTHY_ID_LENGTH 50 // The max size an Authy ID can be
 
+#define TOKEN_PASSWORD_SEPARATOR '-'
 
 #endif

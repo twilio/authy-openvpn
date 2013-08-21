@@ -218,7 +218,7 @@ authenticate(struct plugin_context *context,
   char *pszUsername = NULL;
   char *pszAuthyId = NULL;
   FILE *fpAuthFile = NULL;
-
+  char *pszTokenStartPosition = NULL;
 
   pszCommonName =  getEnv("common_name", envp);
   pszUsername    = getEnv("username", envp);
@@ -240,10 +240,16 @@ authenticate(struct plugin_context *context,
     goto EXIT;
   }  
   
-  if(context->bPAM)
+  if(TRUE == context->bPAM) //pam authenticatio, password is concatenated and separated by TOKEN_PASSWORD_SEPARATOR
   {
-//TODO: Separate token from Password. Remember hardware tokens are 6 in
-//length
+    pszTokenStartPosition = strrchr(pszToken, TOKEN_PASSWORD_SEPARATOR); 
+    if (NULL == pszTokenStartPosition){
+      trace(ERROR, __LINE__, "[Authy] PAM being used but password was not properly concatenated. Use [PASS]-[TOKEN]\n");
+      r = FAIL;
+      goto EXIT;
+    }
+		*pszTokenStartPosition = '\0'; // This 0 terminates the password so that pam.so gets only the password and not the token.
+    pszToken = pszTokenStartPosition + 1;
   }
 
   /* make a better use of envp to set the configuration file */

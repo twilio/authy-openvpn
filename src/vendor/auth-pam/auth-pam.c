@@ -48,11 +48,9 @@
 #include <signal.h>
 #include <syslog.h>
 
-#include "openvpn-plugin.h"
+#include <openvpn-plugin.h>
 
 #define DEBUG(verb) ((verb) >= 4)
-
-#define AUTHY_TOKEN_SIZE 7
 
 /* Command codes for foreground -> background communication */
 #define COMMAND_VERIFY 0
@@ -159,14 +157,14 @@ get_env (const char *name, const char *envp[])
       int i;
       const int namelen = strlen (name);
       for (i = 0; envp[i]; ++i)
-        {
-          if (!strncmp (envp[i], name, namelen))
-            {
-              const char *cp = envp[i] + namelen;
-              if (*cp == '=')
-                return cp + 1;
-            }
-        }
+	{
+	  if (!strncmp (envp[i], name, namelen))
+	    {
+	      const char *cp = envp[i] + namelen;
+	      if (*cp == '=')
+		return cp + 1;
+	    }
+	}
     }
   return NULL;
 }
@@ -181,7 +179,7 @@ string_array_len (const char *array[])
   if (array)
     {
       while (array[i])
-        ++i;
+	++i;
     }
   return i;
 }
@@ -225,7 +223,7 @@ recv_string (int fd, char *buffer, int len)
       size = read (fd, buffer, len);
       buffer[len-1] = 0;
       if (size >= 1)
-        return (int)size;
+	return (int)size;
     }
   return -1;
 }
@@ -257,16 +255,16 @@ daemonize (const char *envp[])
       const char *log_redirect = get_env ("daemon_log_redirect", envp);
       int fd = -1;
       if (log_redirect && log_redirect[0] == '1')
-        fd = dup (2);
+	fd = dup (2);
       if (daemon (0, 0) < 0)
-        {
-          fprintf (stderr, "AUTH-PAM: daemonization failed\n");
-        }
+	{
+	  fprintf (stderr, "AUTH-PAM: daemonization failed\n");
+	}
       else if (fd >= 3)
-        {
-          dup2 (fd, 2);
-          close (fd);
-        }
+	{
+	  dup2 (fd, 2);
+	  close (fd);
+	}
     }
 }
 
@@ -290,7 +288,7 @@ close_fds_except (int keep)
   for (i = 3; i <= 100; ++i)
     {
       if (i != keep)
-        close (i);
+	close (i);
     }
 }
 
@@ -319,7 +317,7 @@ name_value_match (const char *query, const char *match)
   while (!isalnum (*query))
     {
       if (*query == '\0')
-        return 0;
+	return 0;
       ++query;
     }
   return strncasecmp (match, query, strlen (match)) == 0;
@@ -370,18 +368,18 @@ openvpn_plugin_open_v1 (unsigned int *type_mask, const char *argv[], const char 
       int i;
 
       if ((nv_len & 1) == 1 || (nv_len / 2) > N_NAME_VALUE)
-        {
-          fprintf (stderr, "AUTH-PAM: bad name/value list length\n");
-          goto error;
-        }
+	{
+	  fprintf (stderr, "AUTH-PAM: bad name/value list length\n");
+	  goto error;
+	}
 
       name_value_list.len = nv_len / 2;
       for (i = 0; i < name_value_list.len; ++i)
-        {
-          const int base = base_parms + i * 2;
-          name_value_list.data[i].name = argv[base];
-          name_value_list.data[i].value = argv[base+1];
-        }
+	{
+	  const int base = base_parms + i * 2;
+	  name_value_list.data[i].name = argv[base];
+	  name_value_list.data[i].value = argv[base+1];
+	}
     }
 
   /*
@@ -424,15 +422,15 @@ openvpn_plugin_open_v1 (unsigned int *type_mask, const char *argv[], const char 
 
       /* don't let future subprocesses inherit child socket */
       if (fcntl (fd[0], F_SETFD, FD_CLOEXEC) < 0)
-        fprintf (stderr, "AUTH-PAM: Set FD_CLOEXEC flag on socket file descriptor failed\n");
+	fprintf (stderr, "AUTH-PAM: Set FD_CLOEXEC flag on socket file descriptor failed\n");
 
       /* wait for background child process to initialize */
       status = recv_control (fd[0]);
       if (status == RESPONSE_INIT_SUCCEEDED)
-        {
-          context->foreground_fd = fd[0];
-          return (openvpn_plugin_handle_t) context;
-        }
+	{
+	  context->foreground_fd = fd[0];
+	  return (openvpn_plugin_handle_t) context;
+	}
     }
   else
     {
@@ -479,23 +477,23 @@ openvpn_plugin_func_v1 (openvpn_plugin_handle_t handle, const int type, const ch
       const char *common_name = get_env ("common_name", envp) ? get_env ("common_name", envp) : "";
 
       if (username && strlen (username) > 0 && password)
-        {
-          if (send_control (context->foreground_fd, COMMAND_VERIFY) == -1
-              || send_string (context->foreground_fd, username) == -1
-              || send_string (context->foreground_fd, password) == -1
-              || send_string (context->foreground_fd, common_name) == -1)
-            {
-              fprintf (stderr, "AUTH-PAM: Error sending auth info to background process\n");
-            }
-          else
-            {
-              const int status = recv_control (context->foreground_fd);
-              if (status == RESPONSE_VERIFY_SUCCEEDED)
-                return OPENVPN_PLUGIN_FUNC_SUCCESS;
-              if (status == -1)
-                fprintf (stderr, "AUTH-PAM: Error receiving auth confirmation from background process\n");
-            }
-        }
+	{
+	  if (send_control (context->foreground_fd, COMMAND_VERIFY) == -1
+	      || send_string (context->foreground_fd, username) == -1
+	      || send_string (context->foreground_fd, password) == -1
+             || send_string (context->foreground_fd, common_name) == -1)
+	    {
+	      fprintf (stderr, "AUTH-PAM: Error sending auth info to background process\n");
+	    }
+	  else
+	    {
+	      const int status = recv_control (context->foreground_fd);
+	      if (status == RESPONSE_VERIFY_SUCCEEDED)
+		return OPENVPN_PLUGIN_FUNC_SUCCESS;
+	      if (status == -1)
+		fprintf (stderr, "AUTH-PAM: Error receiving auth confirmation from background process\n");
+	    }
+	}
     }
   return OPENVPN_PLUGIN_FUNC_ERROR;
 }
@@ -512,11 +510,11 @@ openvpn_plugin_close_v1 (openvpn_plugin_handle_t handle)
     {
       /* tell background process to exit */
       if (send_control (context->foreground_fd, COMMAND_EXIT) == -1)
-        fprintf (stderr, "AUTH-PAM: Error signaling background process to exit\n");
+	fprintf (stderr, "AUTH-PAM: Error signaling background process to exit\n");
 
       /* wait for background process to exit */
       if (context->background_pid > 0)
-        waitpid (context->background_pid, NULL, 0);
+	waitpid (context->background_pid, NULL, 0);
 
       close (context->foreground_fd);
       context->foreground_fd = -1;
@@ -544,7 +542,7 @@ openvpn_plugin_abort_v1 (openvpn_plugin_handle_t handle)
  */
 static int
 my_conv (int n, const struct pam_message **msg_array,
-         struct pam_response **response_array, void *appdata_ptr)
+	 struct pam_response **response_array, void *appdata_ptr)
 {
   const struct user_pass *up = ( const struct user_pass *) appdata_ptr;
   struct pam_response *aresp;
@@ -555,26 +553,6 @@ my_conv (int n, const struct pam_message **msg_array,
 
   if (n <= 0 || n > PAM_MAX_NUM_MSG)
     return (PAM_CONV_ERR);
-
-  if(msg_array[0]->msg_style == 1)
-    /* msg_style = 1 means that PAM is querying for the password, this
-       works for PAM = "login login USERNAME password PASSWORD"
-       need to test how it works for other PAM configurations */
-
-    {
-      /* split the password and remove the token */
-      const size_t size = strlen(up->password);
-      if(size > AUTHY_TOKEN_SIZE)
-        /* if it is less than 7 the user isn't concatenating */
-        {
-          const int newsize = size - AUTHY_TOKEN_SIZE;
-          /* set to NULL the space occupied by the token*/
-          memset((void *)(up->password) + newsize, 0, AUTHY_TOKEN_SIZE);
-        }
-      else
-        return PAM_CONV_ERR;
-    }
-
   if ((aresp = calloc (n, sizeof *aresp)) == NULL)
     return (PAM_BUF_ERR);
 
@@ -586,80 +564,80 @@ my_conv (int n, const struct pam_message **msg_array,
       aresp[i].resp = NULL;
 
       if (DEBUG (up->verb))
-        {
-          fprintf (stderr, "AUTH-PAM: BACKGROUND: my_conv[%d] query='%s' style=%d\n",
-                   i,
-                   msg->msg ? msg->msg : "NULL",
-                   msg->msg_style);
-        }
+	{
+	  fprintf (stderr, "AUTH-PAM: BACKGROUND: my_conv[%d] query='%s' style=%d\n",
+		   i,
+		   msg->msg ? msg->msg : "NULL",
+		   msg->msg_style);
+	}
 
       if (up->name_value_list && up->name_value_list->len > 0)
-        {
-          /* use name/value list match method */
-          const struct name_value_list *list = up->name_value_list;
-          int j;
+	{
+	  /* use name/value list match method */
+	  const struct name_value_list *list = up->name_value_list;
+	  int j;
 
-          /* loop through name/value pairs */
-          for (j = 0; j < list->len; ++j)
-            {
-              const char *match_name = list->data[j].name;
-              const char *match_value = list->data[j].value;
+	  /* loop through name/value pairs */
+	  for (j = 0; j < list->len; ++j)
+	    {
+	      const char *match_name = list->data[j].name;
+	      const char *match_value = list->data[j].value;
 
-              if (name_value_match (msg->msg, match_name))
-                {
-                  /* found name/value match */
-                  aresp[i].resp = NULL;
+	      if (name_value_match (msg->msg, match_name))
+		{
+		  /* found name/value match */
+		  aresp[i].resp = NULL;
 
-                  if (DEBUG (up->verb))
-                    fprintf (stderr, "AUTH-PAM: BACKGROUND: name match found, query/match-string ['%s', '%s'] = '%s'\n",
-                             msg->msg,
-                             match_name,
-                             match_value);
+		  if (DEBUG (up->verb))
+		    fprintf (stderr, "AUTH-PAM: BACKGROUND: name match found, query/match-string ['%s', '%s'] = '%s'\n",
+			     msg->msg,
+			     match_name,
+			     match_value);
 
-                  if (strstr(match_value, "USERNAME"))
-                    aresp[i].resp = searchandreplace(match_value, "USERNAME", up->username);
-                  else if (strstr(match_value, "PASSWORD"))
-                    aresp[i].resp = searchandreplace(match_value, "PASSWORD", up->password);
-                  else if (strstr(match_value, "COMMONNAME"))
-                    aresp[i].resp = searchandreplace(match_value, "COMMONNAME", up->common_name);
-                  else
-                    aresp[i].resp = strdup (match_value);
+		  if (strstr(match_value, "USERNAME"))
+		    aresp[i].resp = searchandreplace(match_value, "USERNAME", up->username);
+		  else if (strstr(match_value, "PASSWORD"))
+		    aresp[i].resp = searchandreplace(match_value, "PASSWORD", up->password);
+		  else if (strstr(match_value, "COMMONNAME"))
+		    aresp[i].resp = searchandreplace(match_value, "COMMONNAME", up->common_name);
+		  else
+		    aresp[i].resp = strdup (match_value);
 
-                  if (aresp[i].resp == NULL)
-                    ret = PAM_CONV_ERR;
-                  break;
-                }
-            }
+		  if (aresp[i].resp == NULL)
+		    ret = PAM_CONV_ERR;
+		  break;
+		}
+	    }
 
-          if (j == list->len)
-            ret = PAM_CONV_ERR;
-        }
+	  if (j == list->len)
+	    ret = PAM_CONV_ERR;
+	}
       else
-        {
-          /* use PAM_PROMPT_ECHO_x hints */
-          switch (msg->msg_style)
-            {
-            case PAM_PROMPT_ECHO_OFF:
-              aresp[i].resp = strdup (up->password);
-              if (aresp[i].resp == NULL)
-                ret = PAM_CONV_ERR;
-              break;
+	{
+	  /* use PAM_PROMPT_ECHO_x hints */
+	  switch (msg->msg_style)
+	    {
+	    case PAM_PROMPT_ECHO_OFF:
+	      aresp[i].resp = strdup (up->password);
+	      if (aresp[i].resp == NULL)
+		ret = PAM_CONV_ERR;
+	      break;
 
-            case PAM_PROMPT_ECHO_ON:
-              aresp[i].resp = strdup (up->username);
-              if (aresp[i].resp == NULL)
-                ret = PAM_CONV_ERR;
-              break;
+	    case PAM_PROMPT_ECHO_ON:
+	      aresp[i].resp = strdup (up->username);
+	      if (aresp[i].resp == NULL)
+		ret = PAM_CONV_ERR;
+	      break;
 
-            case PAM_ERROR_MSG:
-            case PAM_TEXT_INFO:
-              break;
+	    case PAM_ERROR_MSG:
+	    case PAM_TEXT_INFO:
+	      break;
 
-            default:
-              ret = PAM_CONV_ERR;
-              break;
-            }
-        }
+	    default:
+	      ret = PAM_CONV_ERR;
+	      break;
+	    }
+	}
     }
 
   if (ret == PAM_SUCCESS)
@@ -690,20 +668,20 @@ pam_auth (const char *service, const struct user_pass *up)
       /* Call PAM to verify username/password */
       status = pam_authenticate(pamh, 0);
       if (status == PAM_SUCCESS)
-        status = pam_acct_mgmt (pamh, 0);
+	status = pam_acct_mgmt (pamh, 0);
       if (status == PAM_SUCCESS)
-        ret = 1;
+	ret = 1;
 
       /* Output error message if failed */
       if (!ret)
-        {
-          fprintf (stderr, "AUTH-PAM: BACKGROUND: user '%s' failed to authenticate: %s\n",
-                   up->username,
-                   pam_strerror (pamh, status));
-        }
+	{
+	  fprintf (stderr, "AUTH-PAM: BACKGROUND: user '%s' failed to authenticate: %s\n",
+		   up->username,
+		   pam_strerror (pamh, status));
+	}
 
       /* Close PAM */
-      pam_end (pamh, status);
+      pam_end (pamh, status);      
     }
 
   return ret;
@@ -761,60 +739,60 @@ pam_server (int fd, const char *service, int verb, const struct name_value_list 
       command = recv_control (fd);
 
       if (DEBUG (verb))
-        fprintf (stderr, "AUTH-PAM: BACKGROUND: received command code: %d\n", command);
+	fprintf (stderr, "AUTH-PAM: BACKGROUND: received command code: %d\n", command);
 
       switch (command)
-        {
-        case COMMAND_VERIFY:
-          if (recv_string (fd, up.username, sizeof (up.username)) == -1
-              || recv_string (fd, up.password, sizeof (up.password)) == -1
-              || recv_string (fd, up.common_name, sizeof (up.common_name)) == -1)
-            {
-              fprintf (stderr, "AUTH-PAM: BACKGROUND: read error on command channel: code=%d, exiting\n",
-                       command);
-              goto done;
-            }
+	{
+	case COMMAND_VERIFY:
+	  if (recv_string (fd, up.username, sizeof (up.username)) == -1
+	      || recv_string (fd, up.password, sizeof (up.password)) == -1
+	      || recv_string (fd, up.common_name, sizeof (up.common_name)) == -1)
+	    {
+	      fprintf (stderr, "AUTH-PAM: BACKGROUND: read error on command channel: code=%d, exiting\n",
+		       command);
+	      goto done;
+	    }
 
-          if (DEBUG (verb))
-            {
+	  if (DEBUG (verb))
+	    {
 #if 0
-              fprintf (stderr, "AUTH-PAM: BACKGROUND: USER/PASS: %s/%s\n",
-                       up.username, up.password);
+	      fprintf (stderr, "AUTH-PAM: BACKGROUND: USER/PASS: %s/%s\n",
+		       up.username, up.password);
 #else
-              fprintf (stderr, "AUTH-PAM: BACKGROUND: USER: %s\n", up.username);
+	      fprintf (stderr, "AUTH-PAM: BACKGROUND: USER: %s\n", up.username);
 #endif
-            }
+	    }
 
-          if (pam_auth (service, &up)) /* Succeeded */
-            {
-              if (send_control (fd, RESPONSE_VERIFY_SUCCEEDED) == -1)
-                {
-                  fprintf (stderr, "AUTH-PAM: BACKGROUND: write error on response socket [2]\n");
-                  goto done;
-                }
-            }
-          else /* Failed */
-            {
-              if (send_control (fd, RESPONSE_VERIFY_FAILED) == -1)
-                {
-                  fprintf (stderr, "AUTH-PAM: BACKGROUND: write error on response socket [3]\n");
-                  goto done;
-                }
-            }
-          break;
+	  if (pam_auth (service, &up)) /* Succeeded */
+	    {
+	      if (send_control (fd, RESPONSE_VERIFY_SUCCEEDED) == -1)
+		{
+		  fprintf (stderr, "AUTH-PAM: BACKGROUND: write error on response socket [2]\n");
+		  goto done;
+		}
+	    }
+	  else /* Failed */
+	    {
+	      if (send_control (fd, RESPONSE_VERIFY_FAILED) == -1)
+		{
+		  fprintf (stderr, "AUTH-PAM: BACKGROUND: write error on response socket [3]\n");
+		  goto done;
+		}
+	    }
+	  break;
 
-        case COMMAND_EXIT:
-          goto done;
+	case COMMAND_EXIT:
+	  goto done;
 
-        case -1:
-          fprintf (stderr, "AUTH-PAM: BACKGROUND: read error on command channel\n");
-          goto done;
+	case -1:
+	  fprintf (stderr, "AUTH-PAM: BACKGROUND: read error on command channel\n");
+	  goto done;
 
-        default:
-          fprintf (stderr, "AUTH-PAM: BACKGROUND: unknown command code: code=%d, exiting\n",
-                   command);
-          goto done;
-        }
+	default:
+	  fprintf (stderr, "AUTH-PAM: BACKGROUND: unknown command code: code=%d, exiting\n",
+		   command);
+	  goto done;
+	}
     }
  done:
 

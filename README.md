@@ -194,6 +194,12 @@ Authentication.
 To use PAM simply answer that you are going to use PAM during the
 `post-install` script.
 
+Also your users will need to separate the password from the token during logi
+by using a '-' character.
+
+Eg:
+		[PASSOWORD]-[TOKEN]
+
 
 ##### Example authy-vpn.conf for a user joe with AUTHY_ID 10229
 
@@ -202,13 +208,14 @@ To use PAM simply answer that you are going to use PAM during the
 Here joe is the PAM login username.
 
 Let's suppose joe password is `god`. So the user will enter `joe` as
-username, and the password concatenated with the token in the password
-field. EG.
+username. On the password field he will enter his password followed by a `-` followed by the Authy Token. 
+
+EG.
 
     username:joe
-    password:god1234567
+    password:god-1234567
 
-`1234567` would be the Token.
+`1234567` would be the Authy Token and `god` his password.
 
 <br/>
 <br/>
@@ -226,10 +233,10 @@ This is accomplish by modifying authy-vpn.conf to add the common name to every l
 
 ### Example authy-vpn.conf for a user joe with Common Name joe1 and AUTHY_ID 10229
 
-    joe joe1 10229
+    joe 10229 joe1
 
 This will check that joe and the common name from the certificate
-(joe1) matches before proceding with the authentication
+(joe1) matches before proceding with the authentication.
 
 ## VPN Client configuration for all users
 

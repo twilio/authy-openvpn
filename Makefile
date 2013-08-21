@@ -28,7 +28,7 @@ OBJS = $(patsubst %,$(BUILD_DIR)/%,$(_OBJS))
 _JSMN_OBJS = $(addsuffix .o, $(notdir $(basename $(wildcard $(SDIR)/vendor/jsmn/*.c))))
 JSMN_OBJS = $(patsubst %,$(BUILD_DIR)/vendor/%,$(_JSMN_OBJS))
 
-_PAM_OBJS = $(addsuffix .o, $(notdir $(basename $(wildcard $(SDIR)/vendor/pam/*.c))))
+_PAM_OBJS = $(addsuffix .o, $(notdir $(basename $(wildcard $(SDIR)/vendor/auth-pam/*.c))))
 PAM_OBJS = $(patsubst %,$(BUILD_DIR)/vendor/%,$(_PAM_OBJS))
 
 
@@ -40,7 +40,7 @@ $(BUILD_DIR)/%.o: $(SDIR)/%.c
 	$(CC) $(CFLAGS) $(OBJFLAGS) -o $@ $< 
 
 #build vendors pam module .o
-$(BUILD_DIR)/vendor/%.o: $(SDIR)/vendor/pam/%.c	
+$(BUILD_DIR)/vendor/%.o: $(SDIR)/vendor/auth-pam/%.c	
 	mkdir -p $(BUILD_DIR)/vendor
 	$(CC) $(CFLAGS) $(OBJFLAGS) -o $@ $<
 
