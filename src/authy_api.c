@@ -71,7 +71,7 @@ calcUrlSize(const char *pszApiUrl,
 //
 // Parameters
 // 
-// pResultUrl - A pointer to where the URL will be stored
+// pResultUrl -  A pointer to the pointer were the URL will be stored.
 // pszApiUrl   - Server URL
 // pszEndPoint - The API endpoint including format  
 // pszParams   - The endpoint params.
@@ -82,12 +82,14 @@ calcUrlSize(const char *pszApiUrl,
 // Standard RESULT  
 //
 RESULT
-buildUrl(char       *pszResultUrl, 
+buildUrl(__out char **ppszResultUrl, 
          const char *pszApiUrl, 
          const char *pszEndPoint,  
          const char *pszParams, 
          const char *pszApiKey)
 {
+  assert(ppszResultUrl != NULL);
+
   RESULT r = FAIL;
 
   size_t urlSize = calcUrlSize(pszApiUrl, 
@@ -95,19 +97,20 @@ buildUrl(char       *pszResultUrl,
                                pszParams, 
                                pszApiKey);
 
-  pszResultUrl = calloc(urlSize, sizeof(char));
-  if(NULL == pszResultUrl){
+  
+  *ppszResultUrl = calloc(urlSize, sizeof(char));
+  if(NULL == *ppszResultUrl){
     trace(ERROR, __LINE__, "[Authy] Out of Memory: Malloc failed.");
     r = OUT_OF_MEMORY;
     goto EXIT;
   }
 
-  snprintf(pszResultUrl, 
+  snprintf(*ppszResultUrl, 
            urlSize, 
            "%s%s%s%s", 
            pszApiUrl, pszEndPoint, pszParams, pszApiKey);
 
-  trace(DEBUG, __LINE__, "[Authy] BuilUrl pszResultUrl=%s\n.", pszResultUrl);
+  trace(DEBUG, __LINE__, "[Authy] buildUrl pszResultUrl=%s\n.", *ppszResultUrl);
   r = OK;
 
 EXIT:
@@ -235,7 +238,8 @@ registerUser(const char *pszApiUrl,
   char *pszResultUrl = NULL;
   char *pszEndPoint = "/users/new";
   char *pszParams = "?api_k)y=";
-  r = buildUrl(pszResultUrl, 
+
+  r = buildUrl(&pszResultUrl, 
                pszApiUrl, 
                pszEndPoint,  
                pszParams, 
@@ -304,7 +308,7 @@ verifyToken(const char *pszApiUrl,
 
   snprintf(pszEndPoint, endPointSize, "/verify/%s/%s", pszToken, pszAuthyId);
 
-  r = buildUrl(pszResultUrl, 
+  r = buildUrl(&pszResultUrl, 
                pszApiUrl, 
                pszEndPoint,  
                pszParams, 
@@ -318,7 +322,7 @@ verifyToken(const char *pszApiUrl,
   r = request(pszResultUrl, NULL, pszResponse); //GET request, postFields are NULL
   
   if(FAILED(r)) {
-    trace(INFO, __LINE__, "[Authy] Token request verification failed\n");
+    trace(INFO, __LINE__, "[Authy] Token request verification failed.\n");
     goto EXIT;
   }
 
@@ -370,7 +374,7 @@ requestSms(const char *pszApiUrl,
 
   snprintf(pszEndPoint, endPointSize, "/sms/%s", pszAuthyId);
 
-  r = buildUrl(pszResultUrl, 
+  r = buildUrl(&pszResultUrl, 
                pszApiUrl, 
                pszEndPoint,  
                pszParams, 
