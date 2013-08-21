@@ -31,8 +31,11 @@
 #define AUTHY_TOKEN_SIZE 7    // The size of our mobile tokens
 #define HARDWARE_TOKEN_SIZE 6 // Size of our hardware OTP's
 
+#define MAX_AUTHY_ID_LENGTH 50
+
+
 RESULT
-getAuthyId(__out char *pszAuthyId,
+getAuthyIdAndValidateCommonName(__out char *pszAuthyId,
 					 const char *pszConfFileName, 
            const char *pszUserName, 
            const char *pszCommonName);

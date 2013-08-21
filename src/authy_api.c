@@ -25,7 +25,7 @@
 
 #include <stdarg.h>
 #include <curl/curl.h>
-
+#include <assert.h>
 #include "utils.h"
 #include "logger.h"
 #include "authy_api.h"

@@ -15,6 +15,8 @@
 //  8/1/2013    dpalacio    Created
 //
 //------------------------------------------------------------------------------
+#include <assert.h>
+
 #include "authy_conf.h"
 #include "logger.h"
 #include "utils.h"
@@ -28,39 +30,26 @@
 // Description
 //
 // Checks if pszAuthyId is a valid authyId
-// by checking if it is an number.
+// by checking if it's a number only.
 //
 // Parameters
 // 
-//   pAuthyId - The pointer being free'd
+//   pszAuthyId - The Authy ID
 // 
 // Returns
 // 
-// Standard RESULT
+// 1 if it's a valid authy ID 
+// 0 otherwie
 //
-static RESULT
-validateAuthyId(char *pszAuthyId)
+static int
+isAnAuthyId(char *pszAuthyId)
 {
-  RESULT r = FAIL;
-  int iAuthyId =  (int)strtol(pszAuthyId, (char **)NULL, 10);
-  if( 0 == iAuthyId){
-    r = FAIL;
-    trace(ERROR, __LINE__, "Invalid Authy ID=%s\n", pszAuthyId);
-    goto EXIT;
+  long long llAuthyId =  (long long)strtoll(pszAuthyId, (char **)NULL, 10);
+  if( 0 == llAuthyId){
+    trace(DEBUG, __LINE__, "%s is not an Authy ID\n", pszAuthyId);
+    return 0;
   }
-
-  char szAuthyIdFromI[20];
-  snprintf(szAuthyIdFromI, 20, "%d", iAuthyId);
-  if (0 != strncmp(pszAuthyId, szAuthyIdFromI, 20)){
-    r = FAIL;
-    trace(ERROR, __LINE__, "Invalid Authy ID=%s\n", pszAuthyId);
-    goto EXIT;
-  }
-
-  r = OK;
-
-EXIT:
-  return r;
+  return 1;
 }
 
 // Description
@@ -111,27 +100,26 @@ EXIT:
 // 
 //   pszConfFilename - Full path to the configuration file
 //   pszUsername     - The Username (login) for which we are getting the Authy ID
-//   pszCommonName   -
+//   pszCommonName   - Common name from the OpenVPN certificate
 //
 // Returns
 // 
 // standard RESULT
 //
 RESULT
-getAuthyId(__out char *pszAuthyId,
+getAuthyIdAndValidateCommonName(__out char *pszAuthyId,
            const char *pszConfFilename, 
            const char *pszUsername, 
            const char *pszCommonName) 
 {
-  RESULT r = FAIL;
   FILE *fpConfFile = NULL;
+	char *pch = NULL;
+  RESULT r = FAIL;
 
-	pszAuthyId = calloc(LINE_LENGTH, sizeof(char)); // ID is goind to be max the line length
-	if(NULL == pszAuthyId){
-    r = OUT_OF_MEMORY;
-    trace(ERROR, __LINE__, "[Authy] Out of memory. Can't allocate enough memory for Authy ID\n");
-    goto EXIT;
-	}
+  char line[LINE_LENGTH];
+  char *columns[3] = {NULL};
+  int i = 0;
+
 
   if(!pszConfFilename || !pszUsername || FAILED(checkUsername(pszUsername))) {
     r = FAIL;
@@ -147,47 +135,44 @@ getAuthyId(__out char *pszAuthyId,
     goto EXIT;
   }
 
-  char username[LINE_LENGTH];
-  snprintf(username, LINE_LENGTH, "%s %%20s", pszUsername); //set the format to the userName needed
-
-  char line[LINE_LENGTH];
-  int bUsernameFound = 0; //not found
-
-  /* Traverse the config file until we find the line that matches the
-     USERNAME*/
-  do {
-    if(NULL == fgets(line, LINE_LENGTH, fpConfFile)){
-      break;
+  memset(columns, 0, sizeof(columns));
+  while(NULL != fgets(line, ARRAY_SIZE(line), fpConfFile)){
+		pch = strtok(line," \t");
+    i = 0;
+    while(pch != NULL && i < 3){
+      columns[i] = removeSpaces(pch);
+      pch = strtok (NULL, " \t"); //Go to the next token 
+      i++;
+    }    
+    if(columns[1] != NULL && 0 == strcmp(columns[0], pszUsername)){
+      trace(DEBUG, __LINE__, "[Authy] Found column for pszUsername=%s column is %s\n", pszUsername, line); 
+      break; 
     }
-    bUsernameFound = sscanf(line, username, pszAuthyId);//0 unless matching
-  } while(!bUsernameFound);
+    memset(columns, 0, sizeof(columns));
+  }
 
-  /* they query was made for a not listed user */
-  if(0 == bUsernameFound){
+  if(columns[0] == NULL){
     r = FAIL;
-    trace(ERROR, __LINE__, "[Authy] Unable to get Authy ID for username=%s\n", pszUsername);
+    trace(ERROR, __LINE__, "[Authy] Username %s not found in Authy Config file\n", pszUsername);
+    goto EXIT;
+  } 
+  
+  assert(columns[1] != NULL);
+  
+  if(0 != isAnAuthyId(columns[1])){
+    r = FAIL;
+    trace(ERROR, __LINE__, "[Authy] AuthyID %s for Username %s is not valid. Authy ID's can only be numeric values\n", columns[1], pszUsername);
     goto EXIT;
   }
 
-  // Check if second value is really an authy_id
-  if(validateAuthyId(pszAuthyId))
-  {
-    /*
-      This means that we have to take care of the common_name
-      and pszAuthyId is pointing to the commonName value.
-    */
-    snprintf(username, LINE_LENGTH, "%s %s %%20s", pszUsername, pszCommonName);
-
-    sscanf(line, username, pszAuthyId);
-
-    if(validateAuthyId(pszAuthyId)) {
-      // the username and common name doesn't match
-      r = FAIL;
-      trace(ERROR, __LINE__, "[Authy] Username and CommonName do not Match\n");
-      goto EXIT;
-    }
+  if(columns[2] != '\0' && strcmp(columns[2], pszCommonName) != 0){
+    r = FAIL;
+    trace(ERROR, __LINE__, "[Authy] CommonName %s does not match the configuration file common name %s\n", pszCommonName[1], columns[2]);
+    goto EXIT;
   }
 
+  snprintf(pszAuthyId, MAX_AUTHY_ID_LENGTH, "%s", columns[1]);
+  trace(INFO, __LINE__, "[Authy] Found Authy ID: %s for username: %s\n", pszAuthyId, pszUsername);
   r = OK;
 
 EXIT:

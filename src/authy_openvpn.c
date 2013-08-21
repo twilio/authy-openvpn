@@ -12,6 +12,7 @@
 #endif
 
 #include <stdarg.h>
+#include <assert.h>
 
 #include "vendor/jsmn/jsmn.h"
 
@@ -221,14 +222,12 @@ authenticate(struct plugin_context *context,
   pszUsername    = getEnv("username", envp);
   pszToken       = getEnv("password", envp);
   pszControl     = getEnv("auth_control_file", envp);
-  pszResponse    = (char *) calloc(255, sizeof(char));
+  pszResponse    = calloc(255, sizeof(char)); //TODO: investigate this size
+  pszAuthyId		 = calloc(MAX_AUTHY_ID_LENGTH + 1, sizeof(char));
 
   trace(INFO, __LINE__, "[Authy] Authy Two-Factor Authentication started\n");
-  trace(INFO, __LINE__, "[Authy] Authenticating:  ");
 	
-	removeSpaces(NULL);
-  
-  if(!pszCommonName || !pszToken || !pszUsername || !pszResponse || !pszControl){
+  if(!pszCommonName || !pszToken || !pszUsername || !pszResponse || !pszControl || !pszAuthyId){
     r = FAIL;
     goto EXIT;
   }
@@ -245,21 +244,20 @@ authenticate(struct plugin_context *context,
 //length
   }
 
-  trace(INFO, __LINE__, "username=%s, token=%s ", pszUsername, pszToken); 
   /* make a better use of envp to set the configuration file */
 
-  r = getAuthyId(pszAuthyId,
+  r = getAuthyIdAndValidateCommonName(pszAuthyId,
 								AUTHY_VPN_CONF, 
                 pszUsername, 
                 pszCommonName); 
 
   if(FAILED(r)){
-		trace(ERROR, __LINE__, "Failed to get Authy ID for username\n");
+		trace(ERROR, __LINE__, "[Authy] Authentication failed because Authy ID was not found for %s\n", pszUsername);
     r = FAIL;
     goto EXIT;
   }
-
-  trace(INFO, __LINE__, "and AUTHY_ID=%s\n", pszAuthyId);
+	
+  trace(INFO, __LINE__, "[Authy] Authenticating username=%s, token=%s with AUTHY_ID=%s\n", pszUsername, pszToken, pszAuthyId); 
 
 
   //CAREFUL HERE USING RESULT, both conditions need to be OK
@@ -286,11 +284,11 @@ EXIT:
   if(fpAuthFile){
     /* set the control file to '1' if suceed or to '0' if fail */
     if(SUCCESS(r)){
-      trace(INFO, __LINE__, "[Authy] Auth finished. Result: auth failed for username %s with token %s\n", pszUsername, pszToken);
-      fprintf(fpAuthFile, "0");
-    } else {
-      trace(INFO, __LINE__, "[Authy] Auth finished. Result: auth success for username %s\n", pszUsername);
+      trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy success for username %s\n", pszUsername);
       fprintf(fpAuthFile, "1");
+    } else {
+      trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy failed for username %s with token %s\n", pszUsername, pszToken);
+      fprintf(fpAuthFile, "0");
     }
     fclose(fpAuthFile); 
   }

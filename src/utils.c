@@ -57,9 +57,9 @@ cleanAndFree(void *pszPtr)
 //
 // Returns
 // 
-// void 
+// a pointer to the beginning of the same string. 
 //
-void 
+char * 
 removeSpaces(char* pszString)
 {
   assert(pszString != NULL);
@@ -76,6 +76,8 @@ removeSpaces(char* pszString)
     j++;
   }
   *i = '\0';
+
+  return pszString;
 }
 
 

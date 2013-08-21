@@ -19,10 +19,11 @@
 
 #ifndef __UTILS_H__
 #define __UTILS_H__ 1
-
 #define __out   
 
+#define ARRAY_SIZE(array) (sizeof(array))/(sizeof(*(array)))
+
 void cleanAndFree(void *pszPtr);
-void removeSpaces(char* pszString);
+char* removeSpaces(char* pszString);
 
 #endif

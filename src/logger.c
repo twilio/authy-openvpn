@@ -42,7 +42,7 @@
 // void
 //
 
-#ifdef DDEBUG
+#ifdef WITH_DEBUG
   static int g_logLevel = 5;
 #elif defined DERROR
   static int g_logLevel = 3;
