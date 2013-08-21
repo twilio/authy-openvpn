@@ -26,7 +26,7 @@
 
 #define INFO  4 // OpenVPN regular debug level 
 #define ERROR 3
-#define DEBUG 5
+#define DEBUG 5 //when compiled with DWITH_DEBUG
 
 void trace(const int level, const int line, const char *msg, ...);
 

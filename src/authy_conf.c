@@ -20,6 +20,7 @@
 #include "authy_conf.h"
 #include "logger.h"
 #include "utils.h"
+#include "constants.h"
 
 #define LINE_LENGTH 80 // CONF FILE MAX LINE LENGTH 
 
@@ -41,7 +42,7 @@
 // 1 if it's a valid authy ID 
 // 0 otherwie
 //
-static int
+static BOOL
 isAnAuthyId(char *pszAuthyId)
 {
   long long llAuthyId =  (long long)strtoll(pszAuthyId, (char **)NULL, 10);
@@ -159,7 +160,7 @@ getAuthyIdAndValidateCommonName(__out char *pszAuthyId,
   
   assert(columns[1] != NULL);
   
-  if(0 != isAnAuthyId(columns[1])){
+  if(FALSE == isAnAuthyId(columns[1])){
     r = FAIL;
     trace(ERROR, __LINE__, "[Authy] AuthyID %s for Username %s is not valid. Authy ID's can only be numeric values\n", columns[1], pszUsername);
     goto EXIT;

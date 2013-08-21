@@ -21,7 +21,7 @@
 #include "authy_api.h"
 #include "utils.h"
 #include "logger.h"
-
+#include "constants.h"
 
 /*
  * This state expects the following config line

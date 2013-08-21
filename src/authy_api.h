@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "result.h"
+#include "custom_types.h"
 
 extern RESULT
 registerUser(const char *pszApiUrl, 

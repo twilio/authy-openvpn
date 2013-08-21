@@ -4,11 +4,11 @@
 //
 // Name
 //
-//   result.h
+// custom_types.h
 //
 // Abstract
 // 
-// Wraps a result object used throughout the project to return function status.
+// defines new types used on the Authy OpenVPN project.
 //
 //
 //
@@ -18,8 +18,16 @@
 //
 //------------------------------------------------------------------------------
 
-#ifndef __RESULT_H__
-#define __RESULT_H__ 1
+#ifndef __CUSTOM_TYPES_H__
+#define __CUSTOM_TYPES_H__ 1
+
+#define __out  //indicates that the argument will contain the result.  
+
+
+#define BOOL short // Boolean type.
+#define TRUE 1
+#define FALSE 0
+
 
 #define FAILED(r) (((RESULT)(r)) != 0) // Test if result is different than 0
 #define SUCCESS(r)(((RESULT)(r)) == 0) //test if result is OK
@@ -30,6 +38,6 @@ typedef enum
 	OK = 0,
 	INVALID_ARG = -2,
 	OUT_OF_MEMORY = -3
-} RESULT;
+} RESULT; // Standard result returned by most functions
 
 #endif

@@ -25,13 +25,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "result.h"
+#include "custom_types.h"
 #include "utils.h"
 
-#define AUTHY_TOKEN_SIZE 7    // The size of our mobile tokens
-#define HARDWARE_TOKEN_SIZE 6 // Size of our hardware OTP's
-
-#define MAX_AUTHY_ID_LENGTH 50
 
 
 RESULT
