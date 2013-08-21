@@ -39,8 +39,13 @@ verifyToken(const char *pszApiUrl,
 
 
 extern RESULT
-requestSms(const char *pszApiUrl, 
-            char *pszAuthyId, 
-            const char *pszApiKey, 
-            char *pszResponse);
+sms(const char *pszApiUrl, 
+          char *pszAuthyId, 
+          const char *pszApiKey, 
+          char *pszResponse);
 
+extern RESULT
+call(const char *pszApiUrl, 
+          char *pszAuthyId, 
+          const char *pszApiKey, 
+          char *pszResponse);

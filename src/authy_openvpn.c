@@ -239,8 +239,35 @@ authenticate(struct plugin_context *context,
     r = FAIL;
     goto EXIT;
   }  
+
+  r = getAuthyIdAndValidateCommonName(pszAuthyId,
+                                      AUTHY_VPN_CONF, 
+                                      pszUsername, 
+                                      pszCommonName); 
+  if(FAILED(r)){
+		trace(ERROR, __LINE__, "[Authy] Authentication failed because Authy ID was not found for %s\n", pszUsername);
+    r = FAIL;
+    goto EXIT;
+  }
+	
+
+  // Here check if the user is trying to just request a phone call or an sms token.
+  if (0 == strcmp(pszToken, "sms")){
+    
+    sms(context->pszApiUrl, pszAuthyId, context->pszApiKey, pszResponse);
+    r = FAIL; //doing phone call always fails authentication
+    goto EXIT;
+  }
+  else if(0 == strcmp(pszToken, "call")){
+
+    call(context->pszApiUrl, pszAuthyId, context->pszApiKey, pszResponse);
+
+     r = FAIL; //doing phone call always fails authentication
+     goto EXIT;
+  }
   
-  if(TRUE == context->bPAM) //pam authenticatio, password is concatenated and separated by TOKEN_PASSWORD_SEPARATOR
+  //PAM Authentication: password is concatenated and separated by TOKEN_PASSWORD_SEPARATOR 
+  if(TRUE == context->bPAM) 
   {
     pszTokenStartPosition = strrchr(pszToken, TOKEN_PASSWORD_SEPARATOR); 
     if (NULL == pszTokenStartPosition){
@@ -252,37 +279,16 @@ authenticate(struct plugin_context *context,
     pszToken = pszTokenStartPosition + 1;
   }
 
-  /* make a better use of envp to set the configuration file */
-
-  r = getAuthyIdAndValidateCommonName(pszAuthyId,
-								AUTHY_VPN_CONF, 
-                pszUsername, 
-                pszCommonName); 
-
-  if(FAILED(r)){
-		trace(ERROR, __LINE__, "[Authy] Authentication failed because Authy ID was not found for %s\n", pszUsername);
-    r = FAIL;
-    goto EXIT;
-  }
-	
   trace(INFO, __LINE__, "[Authy] Authenticating username=%s, token=%s with AUTHY_ID=%s\n", pszUsername, pszToken, pszAuthyId); 
+  r = verifyToken(context->pszApiUrl, 
+                  pszToken, 
+                  pszAuthyId, 
+                  context->pszApiKey, 
+                  pszResponse);
 
-
-  //CAREFUL HERE USING RESULT, both conditions need to be OK
-  if(
-			SUCCESS(
-						verifyToken( (const char *) context->pszApiUrl, 
-                    pszToken, 
-                    pszAuthyId, 
-                    (const char *) context->pszApiKey, 
-                    pszResponse)
-            )
-   && 
-			SUCCESS(responseWasSuccessful(pszResponse))
-	)
-	{
-     r = OK;
-     goto EXIT;
+  if (SUCCESS(r) && SUCCESS(responseWasSuccessful(pszResponse))){
+    r = OK;
+    goto EXIT;
   }
 
   r = FAIL;

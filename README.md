@@ -17,6 +17,7 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
 
 #### Using source code
 
+This is the recommended installation.
 
 ##### Required libs
 
@@ -31,9 +32,10 @@ _For hardware dongles, SMS and phone calls please contact sales@authy.com_
         curl "https://github.com/authy/authy-open-vpn/archive/master.tar.gz" -o authy-openvpn.tar.gz
         tar -zxvf authy-openvpn.tar.gz
         cd authy-open-vpn-master
+        make production
         sudo make install
 
-2. Get your free Authy API KEY from [https://www.authy.com/signup](https://www.authy.com/signup).
+2. Get your free Authy API KEY from: [https://www.authy.com/signup](https://www.authy.com/signup).
 
 3. Finally configure the plugin.  
 
@@ -220,6 +222,26 @@ EG.
 <br/>
 <br/>
 <br/>
+
+
+
+## SMS and Phone Calls
+
+To use SMS or Phone calls the user will have to enter `sms` or `call` as
+the password. The first authentication will fail. The user should then
+wait for the SMS or Call to arrive and re-authenticate with the right 
+username and token.
+
+Eg.
+
+    auth#1:
+      username: joe@authy.com
+      password: sms
+
+    auth#2:
+      username: joe@authy.com
+      password: 172839
+    
 
 ## Optional: Authy OpenVPN with Common Name Verification
 

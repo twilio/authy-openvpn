@@ -350,6 +350,70 @@ EXIT:
   return r;
 }
 
+
+///
+// Description
+//
+// Calls the request SMS Authy API. 
+// 
+//
+// Parameters
+// 
+// pszApiUrl      - The server URL
+// pszAuthyId     - The Authy ID fo the user 
+// pszVia         - This is the way, either 'call' or 'sms'
+// pszApiKey      - The Authy API key
+// pszResponse    - Pointer to where the response will be stored.
+//
+// Returns
+//
+// Standard RESULT  
+//
+extern RESULT
+sendTokenToUser(const char *pszApiUrl, 
+            char *pszAuthyId, 
+            char *pszVia,
+            const char *pszApiKey, 
+            char *pszResponse)
+{
+  int r = FAIL;
+  size_t endPointSize = 0;
+  char *pszResultUrl = NULL;
+  char *pszEndPoint = NULL;
+  char *pszParams = "?api_key=";
+    
+  // /call/1 or /sms/1. Including the 2 slashes. 
+  endPointSize = 2 + strlen(pszVia) + strlen(pszAuthyId) + 1;
+  pszEndPoint = calloc(endPointSize, sizeof(char));
+  if(NULL == pszEndPoint){
+    r = OUT_OF_MEMORY;
+    goto EXIT;
+  }
+  
+  snprintf(pszEndPoint, endPointSize, "/%s/%s", pszVia, pszAuthyId);
+  r = buildUrl(&pszResultUrl, 
+               pszApiUrl, 
+               pszEndPoint,  
+               pszParams, 
+               pszApiKey);
+
+  if(FAILED(r)) {
+    r = FAIL;
+    goto EXIT;
+  }
+
+  trace(INFO, __LINE__, "[Authy] Requesting %sfor Authy ID\n", pszVia, pszAuthyId);
+  r = doHttpRequest(pszResultUrl, NULL, pszResponse);
+
+EXIT:
+  cleanAndFree(pszResultUrl);
+  pszResultUrl = NULL;
+  cleanAndFree(pszEndPoint);
+  pszEndPoint = NULL;
+
+  return r;
+}
+
 ///
 // Description
 //
@@ -368,44 +432,76 @@ EXIT:
 // Standard RESULT  
 //
 extern RESULT
-requestSms(const char *pszApiUrl, 
+sms(const char *pszApiUrl, 
+          char *pszAuthyId, 
+    const char *pszApiKey, 
+          char *pszResponse)
+{
+  int r = FAIL;
+  
+  char *pszVia = "sms"; 
+  r = sendTokenToUser(pszApiUrl, 
+                      pszAuthyId,
+                      pszVia, 
+                      pszApiKey, 
+                      pszResponse);
+
+  if (FAILED(r)){
+    trace(ERROR, __LINE__, "[AUTHY] Error sendingsms token to user\n");
+    r = FAIL;
+    goto EXIT;
+  }
+  
+  r = OK; 
+
+EXIT:
+  return r;
+}
+
+
+///
+// Description
+//
+// Calls the request call Authy API. 
+// 
+//
+// Parameters
+// 
+// pszApiUrl      - The server URL
+// pszAuthyId     - The Authy ID fo the user 
+// pszApiKey      - The Authy API key
+// pszResponse    - Pointer to where the response will be stored.
+//
+// Returns
+//
+// Standard RESULT  
+//
+extern RESULT
+call(const char *pszApiUrl, 
             char *pszAuthyId, 
             const char *pszApiKey, 
             char *pszResponse)
 {
   int r = FAIL;
-  size_t endPointSize = 0;
-  char *pszResultUrl = NULL;
-  char *pszEndPoint = NULL;
-  char *pszParams = "?api_key=";
+  
+  char *pszVia = "call"; 
+  r = sendTokenToUser(pszApiUrl, 
+                      pszAuthyId,
+                      pszVia, 
+                      pszApiKey, 
+                      pszResponse);
 
-  endPointSize = strlen("/sms/") + strlen(pszAuthyId) + 1;
-  pszEndPoint = calloc(endPointSize, sizeof(char));
-  if(NULL == pszEndPoint){
-    r = OUT_OF_MEMORY;
-    goto EXIT;
-  }
-
-  snprintf(pszEndPoint, endPointSize, "/sms/%s", pszAuthyId);
-
-  r = buildUrl(&pszResultUrl, 
-               pszApiUrl, 
-               pszEndPoint,  
-               pszParams, 
-               pszApiKey);
-
-  if(FAILED(r)) {
+  if (FAILED(r)){
+    trace(ERROR, __LINE__, "[AUTHY] Error trying to call the user\n");
     r = FAIL;
     goto EXIT;
   }
-
-  r = doHttpRequest(pszResultUrl, NULL, pszResponse);
+  
+  r = OK; 
 
 EXIT:
-  cleanAndFree(pszResultUrl);
-  pszResultUrl = NULL;
-  cleanAndFree(pszEndPoint);
-  pszEndPoint = NULL;
-
   return r;
 }
+
+
+
