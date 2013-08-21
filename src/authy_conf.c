@@ -166,9 +166,9 @@ getAuthyIdAndValidateCommonName(__out char *pszAuthyId,
     goto EXIT;
   }
 
-  if(columns[2] != '\0' && strcmp(columns[2], pszCommonName) != 0){
+  if(columns[2] != NULL && strcmp(columns[2], pszCommonName) != 0){
     r = FAIL;
-    trace(ERROR, __LINE__, "[Authy] CommonName %s does not match the configuration file common name %s\n", pszCommonName[1], columns[2]);
+    trace(ERROR, __LINE__, "[Authy] CommonName %s does not match the configuration file common name %s\n", pszCommonName, columns[2]);
     goto EXIT;
   }
 

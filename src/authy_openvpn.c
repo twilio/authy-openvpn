@@ -245,7 +245,10 @@ authenticate(struct plugin_context *context,
                                       pszUsername, 
                                       pszCommonName); 
   if(FAILED(r)){
-		trace(ERROR, __LINE__, "[Authy] Authentication failed because Authy ID was not found for %s\n", pszUsername);
+		trace(ERROR, 
+          __LINE__, 
+          "[Authy] Authentication failed. Authy ID was not found for %s or commonName validation failed.\n",
+          pszUsername);
     r = FAIL;
     goto EXIT;
   }
