@@ -118,20 +118,34 @@ EXIT:
 }
 
 
+
 //
 // Description
 //
-// This an auxiliar function that curl uses
-// it redirects the output of the libcurl to a buffer
+// curl custom writer. Implements the prototype:
+// prototype: size_t function( char *ptr, size_t size, size_t nmemb, void *userdata); 
+//
+// Parameters
+// 
+// ptr         - Rough data with size size * nmemb. Not zero terminated 
+// size        - size of each member of ptr
+// nmemb       - number of members 
+// userdata    - pointer to were the date is written too. Max write is CURL_MAX_WRITE_SIZE
+//               We allocate userdate 0 termited from the start.
+//
+// Returns
+//
+// Ammount of data that was written to userdata. Else curl will raise an
+// error.
+//
 //
 static size_t
-customWriter(char *ptr, 
+curlWriter(char *ptr, 
              size_t size, 
              size_t nmemb, 
              void *userdata)
 {
-  char *temp = (char *) userdata;
-  memcpy(temp, ptr, (size_t) size * nmemb);
+  memcpy(userdata, ptr, (size_t) size * nmemb);
   return nmemb*size;
 }
 
@@ -139,7 +153,7 @@ customWriter(char *ptr,
 //
 // Description
 //
-// Handles the request to the api
+// Handles the http request to the api
 // it knows when to do a GET or a POST based
 // on the present of pszPostFields 
 //
@@ -156,7 +170,7 @@ customWriter(char *ptr,
 // Standard RESULT  
 //
 RESULT
-request(char *pszResultUrl, char *pszPostFields, char *pszResponse)
+doHttpRequest(char *pszResultUrl, char *pszPostFields, char *pszResponse)
 {
   RESULT r = FAIL;
   CURL *pCurl = NULL;
@@ -184,11 +198,11 @@ request(char *pszResultUrl, char *pszPostFields, char *pszResponse)
   curl_easy_setopt(pCurl, CURLOPT_SSL_VERIFYPEER, 1L); //verify PEER certificate
   curl_easy_setopt(pCurl, CURLOPT_SSL_VERIFYHOST, 2L); //verify HOST certificate
   curl_easy_setopt(pCurl, CURLOPT_VERBOSE, 1L);
-  curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, customWriter);
+  curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, curlWriter);
   curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, pszResponse);
   
   curlResult = (int) curl_easy_perform(pCurl);
-  if(curlResult != 0) {
+  if(0 != curlResult) {
     trace(ERROR, __LINE__, "Curl failed with code %d", curlResult);
     r = FAIL;
     goto EXIT;
@@ -249,7 +263,7 @@ registerUser(const char *pszApiUrl,
     goto EXIT;
   }
 
-  r = request(pszResultUrl, pszPostFields, pszResponse);
+  r = doHttpRequest(pszResultUrl, pszPostFields, pszResponse);
   
   // Clean memory used in the request
   cleanAndFree(pszResultUrl);
@@ -319,7 +333,7 @@ verifyToken(const char *pszApiUrl,
     goto EXIT;
   }
 
-  r = request(pszResultUrl, NULL, pszResponse); //GET request, postFields are NULL
+  r = doHttpRequest(pszResultUrl, NULL, pszResponse); //GET request, postFields are NULL
   
   if(FAILED(r)) {
     trace(INFO, __LINE__, "[Authy] Token request verification failed.\n");
@@ -385,7 +399,7 @@ requestSms(const char *pszApiUrl,
     goto EXIT;
   }
 
-  r = request(pszResultUrl, NULL, pszResponse);
+  r = doHttpRequest(pszResultUrl, NULL, pszResponse);
 
 EXIT:
   cleanAndFree(pszResultUrl);

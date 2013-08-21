@@ -13,6 +13,8 @@
 
 #include <stdarg.h>
 #include <assert.h>
+#include <curl/curl.h>
+
 
 #include "vendor/jsmn/jsmn.h"
 
@@ -222,7 +224,7 @@ authenticate(struct plugin_context *context,
   pszUsername    = getEnv("username", envp);
   pszToken       = getEnv("password", envp);
   pszControl     = getEnv("auth_control_file", envp);
-  pszResponse    = calloc(255, sizeof(char)); //TODO: investigate this size
+  pszResponse    = calloc(CURL_MAX_WRITE_SIZE + 1, sizeof(char)); 
   pszAuthyId		 = calloc(MAX_AUTHY_ID_LENGTH + 1, sizeof(char));
 
   trace(INFO, __LINE__, "[Authy] Authy Two-Factor Authentication started\n");
