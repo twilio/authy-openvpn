@@ -1,0 +1,13 @@
+%dir /usr/lib/debug
+%dir /usr/lib/debug/.build-id
+%dir /usr/lib/debug/.build-id/2a
+%dir /usr/lib/debug/.build-id/be
+%dir /usr/lib/debug/usr
+%dir /usr/lib/debug/usr/lib
+%dir /usr/lib/debug/usr/lib/authy
+/usr/lib/debug/.build-id/2a/7e5b8adcff9c8f22dd529f980bdc2e3d66b45b
+/usr/lib/debug/.build-id/2a/7e5b8adcff9c8f22dd529f980bdc2e3d66b45b.debug
+/usr/lib/debug/.build-id/be/9aef8db80378485aed608655315558c9a34e64.debug
+/usr/lib/debug/.build-id/be/9aef8db80378485aed608655315558c9a34e64
+/usr/lib/debug/usr/lib/authy/pam.so.debug
+/usr/lib/debug/usr/lib/authy/authy-openvpn.so.debug

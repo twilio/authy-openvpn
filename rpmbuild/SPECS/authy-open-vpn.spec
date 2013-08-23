@@ -48,7 +48,7 @@ echo "Remember to run \"bash $RPM_BUILD_ROOT/usr/lib/authy/postinstall\" for con
 /usr/lib/authy/authy-openvpn.so
 /usr/lib/authy/pam.so
 /usr/lib/authy/post-install
-/usr/sbin/authy-vpn-add-users
+/usr/sbin/authy-vpn-add-user
 
 %changelog
 * Fri Aug 23 2013 Authy <support at authy.com> - 3.0-1
