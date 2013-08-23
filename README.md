@@ -156,7 +156,7 @@ To start adding users type:
     Cellphone: 347-388-2229
     Registering the user with Authy
     ...
-    Success: Now, user liz@authy.com has Two-Factor Authentication enabled.
+    Success: User liz@authy.com was registered with AUTHY_ID 12323.
 
 <br/>
 <br/>
@@ -203,20 +203,20 @@ Authentication.
 To use PAM simply answer that you are going to use PAM during the
 `post-install` script.
 
-#### Your server.conf should have the following lines:
+#### After run the post-install script your server.conf should have the following lines:
 
   # This line was added by the authy-openvpn installer
-  plugin /usr/lib/authy/authy-openvpn.so https://api.authy.com/protected/json c8176575b05bba077b4930b41d6814fc pam
+  plugin /usr/lib/authy/authy-openvpn.so https://api.authy.com/protected/json [YOUR_API_KEY] pam
 
   # This line was added by the authy-openvpn installer
   plugin /usr/lib/authy/pam.so "login login USERNAME password PASSWORD"
 
 
-Also your users will need to separate the password from the token during logi
+Also your users will need to separate the password from the token during login
 by using a '-' character.
 
 Eg:
-		[PASSOWORD]-[TOKEN]
+		[PASSWORD]-[TOKEN]
 
 
 ##### Example authy-vpn.conf for a user joe with AUTHY_ID 10229
@@ -265,7 +265,7 @@ Authy by default does not verify that the common name in the certificate matches
 This means a user can logon with someone elses certificate and a different Two-Factor Auth login.
 
 
-This normaly ok as most of the time all users in the VPN have the same priviledges and routes.
+This normaly ok as most of the time all users in the VPN have the same privileges and routes.
 If this is not the case we suggest you verify the common name matches the Two-Factor login.
 This is accomplish by modifying authy-vpn.conf to add the common name to every login.
 
