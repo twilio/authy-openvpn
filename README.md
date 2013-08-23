@@ -80,7 +80,7 @@ This is the recommended installation.
 
 1. Download the rpm package.
 
-        curl 'https://github.com/authy/authy-open-vpn/blob/master/rpmbuild/RPMS/x86_64/authy-open-vpn-2.2-2.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
+        curl 'https://github.com/authy/authy-open-vpn/blob/master/packages/rpm/authy-open-vpn-3.0-3.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
 
 2. Install package.
 
