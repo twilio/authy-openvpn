@@ -22,13 +22,16 @@ This is the recommended installation.
 ##### Required libs
 
 1. Compiler:
+
         - Ubuntu: apt-get install build-essential
         - Centos: yum groupinstall 'Development Tools'
 
 2. libcurl with SSL:
+
         - Ubuntu: apt-get install libcurl4-openssl-dev
         - CentOS: yum install libcurl-devel.x86_64
 3. libpam:
+
         - Ubuntu: apt-get install libpam0g-dev
         - CentOS: yum install pam-devel.x86_64
 
