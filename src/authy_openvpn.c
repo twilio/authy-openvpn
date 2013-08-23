@@ -240,6 +240,8 @@ authenticate(struct plugin_context *context,
     goto EXIT;
   }  
 
+
+   
   r = getAuthyIdAndValidateCommonName(pszAuthyId,
                                       AUTHY_VPN_CONF, 
                                       pszUsername, 
@@ -268,7 +270,7 @@ authenticate(struct plugin_context *context,
      r = FAIL; //doing phone call always fails authentication
      goto EXIT;
   }
-  
+ 
   //PAM Authentication: password is concatenated and separated by TOKEN_PASSWORD_SEPARATOR 
   if(TRUE == context->bPAM) 
   {
@@ -282,6 +284,8 @@ authenticate(struct plugin_context *context,
     pszToken = pszTokenStartPosition + 1;
   }
 
+ 
+ 
   trace(INFO, __LINE__, "[Authy] Authenticating username=%s, token=%s with AUTHY_ID=%s\n", pszUsername, pszToken, pszAuthyId); 
   r = verifyToken(context->pszApiUrl, 
                   pszToken, 
@@ -304,7 +308,7 @@ EXIT:
       trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy success for username %s\n", pszUsername);
       fprintf(fpAuthFile, "1");
     } else {
-      trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy failed for username %s with token %s\n", pszUsername, pszToken);
+      trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy failed for username %s\n", pszUsername);
       fprintf(fpAuthFile, "0");
     }
     fclose(fpAuthFile); 
