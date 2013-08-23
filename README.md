@@ -58,10 +58,8 @@ This is the recommended installation.
 #### Using Ubuntu and Debian packages
 
 1. Download the deb package.
-    - amd64  
-              
+          
         curl 'https://github.com/authy/authy-open-vpn/blob/master/packages/deb/authy-open-vpn-3.0_3.0-ubuntu_amd64.deb?raw=true' -o authy-openvpn.deb
-
 
 2. Move your OpenVPN config file to /etc/openvpn/server.conf
 
