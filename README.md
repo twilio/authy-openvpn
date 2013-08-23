@@ -21,14 +21,14 @@ This is the recommended installation.
 
 ##### Required libs
 
-1. Compiler:   
+1. Compiler:
         - Ubuntu: apt-get install build-essential
         - Centos: yum groupinstall 'Development Tools'
 
-2. libcurl with SSL: 
+2. libcurl with SSL:
         - Ubuntu: apt-get install libcurl4-openssl-dev
         - CentOS: yum install libcurl-devel.x86_64
-3. libpam: 
+3. libpam:
         - Ubuntu: apt-get install libpam0g-dev
         - CentOS: yum install pam-devel.x86_64
 
@@ -39,7 +39,7 @@ This is the recommended installation.
         curl "https://github.com/authy/authy-open-vpn/archive/master.tar.gz" -o authy-openvpn.tar.gz
         tar -zxvf authy-openvpn.tar.gz
         cd authy-open-vpn-master
-        make 
+        make
         sudo make install
 
 2. Get your free Authy API KEY from: [https://www.authy.com/signup](https://www.authy.com/signup).
@@ -55,12 +55,8 @@ This is the recommended installation.
 #### Using Ubuntu and Debian packages
 
 1. Download the deb package.
-    - i386
-
-            curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.2_2.2-ubuntu_i386.deb?raw=true' -o authy-openvpn.deb
     - amd64
-
-            curl 'https://github.com/authy/authy-open-vpn/blob/master/debian/authy-open-vpn-2.3_2.3-ubuntu_amd64.deb?raw=true' -o authy-openvpn.deb
+            curl 'https://github.com/authy/authy-open-vpn/blob/master/packages/deb/authy-open-vpn-3.0_3.0-ubuntu_amd64.deb?raw=true' -o authy-openvpn.deb
 
 
 2. Move your OpenVPN config file to /etc/openvpn/server.conf
