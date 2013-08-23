@@ -39,7 +39,7 @@ This is the recommended installation.
         curl "https://github.com/authy/authy-open-vpn/archive/master.tar.gz" -o authy-openvpn.tar.gz
         tar -zxvf authy-openvpn.tar.gz
         cd authy-open-vpn-master
-        make production
+        make 
         sudo make install
 
 2. Get your free Authy API KEY from: [https://www.authy.com/signup](https://www.authy.com/signup).
@@ -284,3 +284,4 @@ Your users will need to add
 
 to their `client.conf`. This is to ensure that the OpenVPN client asks
 for username and password (this is where they enter the token).
+

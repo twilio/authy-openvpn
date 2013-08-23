@@ -8,7 +8,13 @@ CC= gcc
 LIBNAME= authy-openvpn
 PAM= pam
 
-CFLAGS= -fPIC -O2 -Wall
+RELEASE_FLAGS= -fPIC -O2 -DNDEBUG
+DEBUG_FLAGS= -fPIC -O2 -Wall -DWITH_DEBUG -ggdb -Werror
+
+CFLAGS= $(RELEASE_FLAGS) 
+
+
+
 OBJFLAGS= -I./src/headers/ -c
 LIBFLAGS= -shared -Wl,-soname
 BUILD_DIR= build
@@ -60,25 +66,21 @@ $(BUILD_DIR)/$(LIBNAME).so: $(OBJS) $(JSMN_OBJS)
 	$(CC) $(CFLAGS) $(LIBFLAGS),$(LIBNAME).so -o $@ $^ -lc -lcurl
 
 
+# $(DESTDIR) is used by debian makefiles
 install: all 
-	mkdir -p $(INSTDIR)
-	cp $(BUILD_DIR)/$(LIBNAME).so $(BUILD_DIR)/vendor/$(PAM).so $(INSTDIR)
-	chmod 755 $(INSTDIR)/*.so
-	mkdir -p /usr/sbin
-	cp scripts/authy-vpn-add-user /usr/sbin/authy-vpn-add-user
-	chmod 700 /usr/sbin/authy-vpn-add-user
+	mkdir -p $(DESTDIR)$(INSTDIR)
+	cp $(BUILD_DIR)/$(LIBNAME).so $(BUILD_DIR)/vendor/$(PAM).so $(DESTDIR)$(INSTDIR)
+	chmod 755 $(DESTDIR)$(INSTDIR)/*.so
+	mkdir -p $(DESTDIR)/usr/sbin
+	cp scripts/authy-vpn-add-user $(DESTDIR)/usr/sbin/authy-vpn-add-user
+	chmod 700 $(DESTDIR)/usr/sbin/authy-vpn-add-user
 
 
 # Debug build with debug symbols
-debug: CFLAGS += -DWITH_DEBUG -ggdb -Werror
+debug: CFLAGS = $(DEBUG_FLAGS) 
 debug: clean
 debug: all
 
-
-# Production version has no asserts
-production: CFLAGS += -DNDEBUG 
-production: clean
-production: all
 
 clean:
 	rm -rf $(BUILD_DIR)

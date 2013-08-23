@@ -11,3 +11,6 @@
 
 %:
 	dh $@ 
+
+override_dh_auto_install:
+	$(MAKE) DESTDIR=$$(pwd)/debian/debianpackage prefix=/usr install

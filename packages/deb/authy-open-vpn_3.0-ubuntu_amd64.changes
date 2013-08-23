@@ -1,0 +1,23 @@
+Format: 1.8
+Date: Fri, 23 Aug 2013 11:27:00 -0500
+Source: authy-open-vpn
+Binary: authy-open-vpn-3.0
+Architecture: amd64
+Version: 3.0-ubuntu
+Distribution: UNRELEASED
+Urgency: low
+Maintainer: Authy - support@authy.com
+Changed-By: Authy <support@authy.com>
+Description: 
+ authy-open-vpn-3.0 - Authy Open VPN Two-Factor Authentication
+Changes: 
+ authy-open-vpn (3.0-ubuntu) UNRELEASED; urgency=low
+ .
+   * Initial public release
+   * Rebuild from ground-up to make it more robust.
+Checksums-Sha1: 
+ a7eb52dca5cda46f6dd108e5ff47f6b8e327e177 5886 authy-open-vpn-3.0_3.0-ubuntu_amd64.deb
+Checksums-Sha256: 
+ be683fb741adb11e08ef07b3ad5c27191ca755d568c9c22cb7236c3f371098c1 5886 authy-open-vpn-3.0_3.0-ubuntu_amd64.deb
+Files: 
+ 9708d14ad8cc73d048a57bfc22268379 5886 utils extra authy-open-vpn-3.0_3.0-ubuntu_amd64.deb

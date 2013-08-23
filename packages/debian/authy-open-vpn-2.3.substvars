@@ -1,2 +1,0 @@
-shlibs:Depends=libc6 (>= 2.14), libcurl3 (>= 7.16.2-1), libpam0g (>= 0.99.7.1)
-misc:Depends=
