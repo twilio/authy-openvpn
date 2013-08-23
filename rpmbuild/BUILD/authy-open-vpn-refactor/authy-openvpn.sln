@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "authy-openvpn", "authy-openvpn.vcxproj", "{B2D97E1F-1EDC-902F-8EBA-217FD041625C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B2D97E1F-1EDC-902F-8EBA-217FD041625C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B2D97E1F-1EDC-902F-8EBA-217FD041625C}.Debug|Win32.Build.0 = Debug|Win32
+		{B2D97E1F-1EDC-902F-8EBA-217FD041625C}.Release|Win32.ActiveCfg = Release|Win32
+		{B2D97E1F-1EDC-902F-8EBA-217FD041625C}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

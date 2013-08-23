@@ -1,15 +1,15 @@
 %define name authy-open-vpn
-%define version 3.0
+%define version 2.3
 
 Name:           %{name} 
 Version:        %{version}
-Release:        3%{?dist}
+Release:        2%{?dist}
 Summary:        Authy Open VPN Two-Factor Authentication
 
 Group:          System Environment/Libraries
 License:        BSD
 URL:            https://github.com/authy/authy-open-vpn
-Source0:        %{name}-%{version}.tar.gz 
+Source0:        %{name}-%{version}.tar.gz
 
 BuildRequires:	libcurl-devel, pam-devel  
 
@@ -34,7 +34,7 @@ make -j1
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
-cp "scripts/post-install" $RPM_BUILD_ROOT/usr/lib/authy/
+cp postinstall $RPM_BUILD_ROOT/usr/lib/authy/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -47,11 +47,11 @@ echo "Remember to run \"bash $RPM_BUILD_ROOT/usr/lib/authy/postinstall\" for con
 %defattr(-,root,root,-)
 /usr/lib/authy/authy-openvpn.so
 /usr/lib/authy/pam.so
-/usr/lib/authy/post-install
-/usr/sbin/authy-vpn-add-users
+/usr/lib/authy/postinstall
+/usr/sbin/authy_vpn_add_users
 
 %changelog
-* Fri Aug 23 2013 Authy <support at authy.com> - 3.0-1
-- Release 3.
+* Fri May 20 2013 Sebastian Arcila Valenzuela (sarcilav) <sebastian at authy.com> - 2.3-2
+- Release 2.3
 
 
