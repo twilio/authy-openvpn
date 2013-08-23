@@ -1,5 +1,19 @@
 # Instructions on setting a OpenVPN server for dev.
 
+## Parallels VM's
+
+We have CentOS and Ubuntu VM's that are fully configured.
+
+Client keys to setup Viscosity are in `~/client-keys/`
+
+The configured accounts (with sudo) on the VM's are:
+
+    User: root   : password
+          authy  : authy
+      
+      
+## From Scratch
+
 Start installing openvpn package.
 
 ## OpenVPN config
