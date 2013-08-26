@@ -75,7 +75,7 @@ function prephase {
     fi
 
     echo ""
-    echo "All done. Now start adding users using 'sudo authy-vpn-add-users'"
+    echo "All done. Now start adding users using 'sudo authy-vpn-add-user'"
 }
 
 DESTDIR=/usr/lib/authy
