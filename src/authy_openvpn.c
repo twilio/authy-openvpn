@@ -231,24 +231,25 @@ authenticate(struct plugin_context *context,
   pszAuthyId		 = calloc(MAX_AUTHY_ID_LENGTH + 1, sizeof(char));
 
   trace(INFO, __LINE__, "[Authy] Authy Two-Factor Authentication started\n");
+
+  if (!pszCommonName){
+    pszCommonName = calloc(1, sizeof (char));
+    trace(INFO, __LINE__,"[Authy] CommonName was NULL. Initialized it to an empty string");
+  }
 	
   if(!pszCommonName || !pszUsername || !pszToken || !pszResponse || !pszAuthyId){
     if(!pszCommonName){
       trace(ERROR, __LINE__,"[Authy] ERROR: CommonName is NULL. Marking Auth as failure.\n");
     }
-    
     if(!pszUsername){
       trace(ERROR, __LINE__,"[Authy] ERROR: Username is NULL. Marking Auth as failure.\n");
     }
-  
     if(!pszToken){
       trace(ERROR, __LINE__, "[Authy] ERROR: Token is NULL. Marking Auth as failure.\n");
-    }
 
     if(!pszResponse){
       trace(ERROR, __LINE__, "[Authy] ERROR: Reponse is NULL. Marking Auth as failure.\n");
     }
-
     if(!pszAuthyId){
       trace(ERROR, __LINE__, "[Authy] ERROR: AuthyID is NULL. Marking Auth as failure.\n");
     }
@@ -257,6 +258,7 @@ authenticate(struct plugin_context *context,
     goto EXIT;
   }
 
+  
    
   r = getAuthyIdAndValidateCommonName(pszAuthyId,
                                       AUTHY_VPN_CONF, 
