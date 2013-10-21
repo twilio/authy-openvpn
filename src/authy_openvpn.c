@@ -199,17 +199,21 @@ responseWasSuccessful(char *pszResponse)
 //  
 // Parameters
 // 
-//   pszRespone           - Response body in json format
-//
+//   context           - Passed on by OpenVPN
+//   argv              - Passed by OpenVPN
+//   envp              - Passed by OpenVPN
 // Returns
 // 
-// Standard RESULT
+// OPENVPN_PLUGIN_FUNC_SUCCESS: If authentication was succesful
+// OPENVPN_PLUGIN_FUNC_ERROR: If Auth was unsuccesful
 //
-static RESULT
+static int
 authenticate(struct plugin_context *context, 
              const char *argv[], 
              const char *envp[])
 {
+  int iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR; //auth failed
+
   RESULT r = FAIL;
   char *pszToken = NULL;
   char *pszControl = NULL;
@@ -223,23 +227,18 @@ authenticate(struct plugin_context *context,
   pszCommonName =  getEnv("common_name", envp);
   pszUsername    = getEnv("username", envp);
   pszToken       = getEnv("password", envp);
-  pszControl     = getEnv("auth_control_file", envp);
   pszResponse    = calloc(CURL_MAX_WRITE_SIZE + 1, sizeof(char)); 
   pszAuthyId		 = calloc(MAX_AUTHY_ID_LENGTH + 1, sizeof(char));
 
   trace(INFO, __LINE__, "[Authy] Authy Two-Factor Authentication started\n");
 	
-  if(!pszCommonName || !pszToken || !pszUsername || !pszResponse || !pszControl || !pszAuthyId){
-    r = FAIL;
+  if(!pszCommonName || !pszUsername || !pszToken || !pszResponse || !pszAuthyId){
+    trace(ERROR, 
+          __LINE__, 
+          "[Authy] ERROR: CommonName, Username, token, respose or Authy ID is NULL. Marking Auth as failure.\n");
+    iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR;
     goto EXIT;
   }
-
-  fpAuthFile = fopen(pszControl, "w");
-  if(NULL == fpAuthFile){
-    r = FAIL;
-    goto EXIT;
-  }  
-
 
    
   r = getAuthyIdAndValidateCommonName(pszAuthyId,
@@ -251,7 +250,7 @@ authenticate(struct plugin_context *context,
           __LINE__, 
           "[Authy] Authentication failed. Authy ID was not found for %s or commonName validation failed.\n",
           pszUsername);
-    r = FAIL;
+    iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR;
     goto EXIT;
   }
 	
@@ -260,14 +259,12 @@ authenticate(struct plugin_context *context,
   if (0 == strcmp(pszToken, "sms")){
     
     sms(context->pszApiUrl, pszAuthyId, context->pszApiKey, pszResponse);
-    r = FAIL; //doing phone call always fails authentication
+    iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR; //doing sms always fails authentication
     goto EXIT;
   }
   else if(0 == strcmp(pszToken, "call")){
-
-    call(context->pszApiUrl, pszAuthyId, context->pszApiKey, pszResponse);
-
-     r = FAIL; //doing phone call always fails authentication
+     call(context->pszApiUrl, pszAuthyId, context->pszApiKey, pszResponse);
+     iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR; //doing phone call always fails authentication
      goto EXIT;
   }
  
@@ -277,7 +274,7 @@ authenticate(struct plugin_context *context,
     pszTokenStartPosition = strrchr(pszToken, TOKEN_PASSWORD_SEPARATOR); 
     if (NULL == pszTokenStartPosition){
       trace(ERROR, __LINE__, "[Authy] PAM being used but password was not properly concatenated. Use [PASS]-[TOKEN]\n");
-      r = FAIL;
+      iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR; 
       goto EXIT;
     }
 		*pszTokenStartPosition = '\0'; // This 0 terminates the password so that pam.so gets only the password and not the token.
@@ -285,8 +282,8 @@ authenticate(struct plugin_context *context,
   }
 
  
- 
   trace(INFO, __LINE__, "[Authy] Authenticating username=%s, token=%s with AUTHY_ID=%s\n", pszUsername, pszToken, pszAuthyId); 
+
   r = verifyToken(context->pszApiUrl, 
                   pszToken, 
                   pszAuthyId, 
@@ -294,29 +291,18 @@ authenticate(struct plugin_context *context,
                   pszResponse);
 
   if (SUCCESS(r) && SUCCESS(responseWasSuccessful(pszResponse))){
-    r = OK;
+    iAuthResult = OPENVPN_PLUGIN_FUNC_SUCCESS; //Two-Factor Auth was succesful
     goto EXIT;
   }
-
-  r = FAIL;
+  
+  iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR; 
 
 EXIT:
   
-  if(fpAuthFile){
-    /* set the control file to '1' if suceed or to '0' if fail */
-    if(SUCCESS(r)){
-      trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy success for username %s\n", pszUsername);
-      fprintf(fpAuthFile, "1");
-    } else {
-      trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy failed for username %s\n", pszUsername);
-      fprintf(fpAuthFile, "0");
-    }
-    fclose(fpAuthFile); 
-  }
 	if(pszAuthyId) {cleanAndFree(pszAuthyId);}
   if(pszToken) { memset(pszToken, 0, (strlen(pszToken))); } // Cleanup any sensible data
   if(pszResponse) { cleanAndFree(pszResponse);};
-  return r;
+  return iAuthResult;
 }
 
 
@@ -343,7 +329,7 @@ openvpn_plugin_func_v1(openvpn_plugin_handle_t handle, const int type, const cha
     return authenticate(context, argv, envp);
   }
 
-  return OPENVPN_PLUGIN_FUNC_ERROR; /* Not sure, but for now it should be an error if we handle other callbacks */
+  return OPENVPN_PLUGIN_FUNC_ERROR; //Auth FAILED
 }
 
 /*
