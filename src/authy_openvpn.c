@@ -302,6 +302,14 @@ EXIT:
 	if(pszAuthyId) {cleanAndFree(pszAuthyId);}
   if(pszToken) { memset(pszToken, 0, (strlen(pszToken))); } // Cleanup any sensible data
   if(pszResponse) { cleanAndFree(pszResponse);};
+  
+  if(iAuthResult == OPENVPN_PLUGIN_FUNC_SUCCESS){
+    trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy success for username %s\n", pszUsername);
+  }
+  else{
+    trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy failed for username %s\n", pszUsername);
+  }
+
   return iAuthResult;
 }
 
