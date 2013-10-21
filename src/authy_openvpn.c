@@ -246,7 +246,7 @@ authenticate(struct plugin_context *context,
     }
     if(!pszToken){
       trace(ERROR, __LINE__, "[Authy] ERROR: Token is NULL. Marking Auth as failure.\n");
-
+    }
     if(!pszResponse){
       trace(ERROR, __LINE__, "[Authy] ERROR: Reponse is NULL. Marking Auth as failure.\n");
     }
