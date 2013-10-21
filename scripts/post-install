@@ -64,11 +64,11 @@ function prephase {
         add_authy $serverconf $AUTHYSO $authy_key "pam"
 
         local pam_string="login login USERNAME password PASSWORD"
-        echo -n "The default pam is $pam_string . Do you want to use another? (y/n): "
+        echo -n "The default pam is $pam_string . Is this OK? (y/n): "
         read helpp
 
-        if [ $helpp == 'y' ]; then
-            echo -n "which pam are you using or going to user? "
+        if [ $helpp == 'n' ]; then
+            echo -n "Please enter your PAM string:"
             read pam_string
         fi
         add_pam $serverconf $PAMSO "$pam_string"
