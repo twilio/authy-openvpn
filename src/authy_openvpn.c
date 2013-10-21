@@ -233,9 +233,26 @@ authenticate(struct plugin_context *context,
   trace(INFO, __LINE__, "[Authy] Authy Two-Factor Authentication started\n");
 	
   if(!pszCommonName || !pszUsername || !pszToken || !pszResponse || !pszAuthyId){
-    trace(ERROR, 
-          __LINE__, 
-          "[Authy] ERROR: CommonName, Username, token, respose or Authy ID is NULL. Marking Auth as failure.\n");
+    if(!pszCommonName){
+      trace(ERROR, __LINE__,"[Authy] ERROR: CommonName is NULL. Marking Auth as failure.\n");
+    }
+    
+    if(!pszUsername){
+      trace(ERROR, __LINE__,"[Authy] ERROR: Username is NULL. Marking Auth as failure.\n");
+    }
+  
+    if(!pszToken){
+      trace(ERROR, __LINE__, "[Authy] ERROR: Token is NULL. Marking Auth as failure.\n");
+    }
+
+    if(!pszResponse){
+      trace(ERROR, __LINE__, "[Authy] ERROR: Reponse is NULL. Marking Auth as failure.\n");
+    }
+
+    if(!pszAuthyId){
+      trace(ERROR, __LINE__, "[Authy] ERROR: AuthyID is NULL. Marking Auth as failure.\n");
+    }
+
     iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR;
     goto EXIT;
   }
