@@ -20,3 +20,6 @@
 *~
 
 .DS_Store
+BUILD/*
+BUILDROOT/*
+SRPMS/*

@@ -1,7 +1,0 @@
-authy-open-vpn (3.0-ubuntu) UNRELEASED; urgency=low
-
-  * Initial public release
-  * Rebuild from ground-up to make it more robust.
-
- -- Authy <support@authy.com>  Fri, 23 Aug 2013 11:27:00 -0500
-
