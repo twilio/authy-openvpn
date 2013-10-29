@@ -2,11 +2,11 @@
 
 With Authy OpenVPN plugin you can add Two-Factor Authentication to
 your vpn server in just minutes. This plugin supports certificate based
-authentication and/or PAM.
+authentication, PAM or LDAP.
 
 With Authy your users can authenticate using Authy mobile app or a hardware dongle.
 
-_For hardware dongles, SMS and phone calls please contact sales@authy.com_
+_For hardware dongles, phone calls or LDAP please contact sales@authy.com_
 
 ## Pre-Requisites
 

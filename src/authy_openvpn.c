@@ -230,11 +230,11 @@ authenticate(struct plugin_context *context,
   pszResponse    = calloc(CURL_MAX_WRITE_SIZE + 1, sizeof(char)); 
   pszAuthyId		 = calloc(MAX_AUTHY_ID_LENGTH + 1, sizeof(char));
 
-  trace(INFO, __LINE__, "[Authy] Authy Two-Factor Authentication started\n");
+  trace(INFO, __LINE__, "[Authy] Authy Two-Factor Authentication started.\n");
 
   if (!pszCommonName){
     pszCommonName = calloc(1, sizeof (char));
-    trace(INFO, __LINE__,"[Authy] CommonName was NULL. Initialized it to an empty string");
+    trace(INFO, __LINE__,"[Authy] CommonName is NULL. Initializing it to an empty string.");
   }
 	
   if(!pszCommonName || !pszUsername || !pszToken || !pszResponse || !pszAuthyId){
@@ -258,8 +258,6 @@ authenticate(struct plugin_context *context,
     goto EXIT;
   }
 
-  
-   
   r = getAuthyIdAndValidateCommonName(pszAuthyId,
                                       AUTHY_VPN_CONF, 
                                       pszUsername, 
@@ -292,7 +290,7 @@ authenticate(struct plugin_context *context,
   {
     pszTokenStartPosition = strrchr(pszToken, TOKEN_PASSWORD_SEPARATOR); 
     if (NULL == pszTokenStartPosition){
-      trace(ERROR, __LINE__, "[Authy] PAM being used but password was not properly concatenated. Use [PASS]-[TOKEN]\n");
+      trace(ERROR, __LINE__, "[Authy] PAM being used but password was not properly concatenated. Use [PASSWORD]-[TOKEN].\n");
       iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR; 
       goto EXIT;
     }
@@ -301,7 +299,7 @@ authenticate(struct plugin_context *context,
   }
 
  
-  trace(INFO, __LINE__, "[Authy] Authenticating username=%s, token=%s with AUTHY_ID=%s\n", pszUsername, pszToken, pszAuthyId); 
+  trace(INFO, __LINE__, "[Authy] Authenticating username=%s, token=%s with AUTHY_ID=%s.\n", pszUsername, pszToken, pszAuthyId); 
 
   r = verifyToken(context->pszApiUrl, 
                   pszToken, 
@@ -323,10 +321,10 @@ EXIT:
   if(pszResponse) { cleanAndFree(pszResponse);};
   
   if(iAuthResult == OPENVPN_PLUGIN_FUNC_SUCCESS){
-    trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy success for username %s\n", pszUsername);
+    trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy success for username %s.\n", pszUsername);
   }
   else{
-    trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy failed for username %s\n", pszUsername);
+    trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy failed for username %s.\n", pszUsername);
   }
 
   return iAuthResult;

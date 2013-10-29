@@ -1,7 +1,7 @@
-authy-open-vpn (3.0-ubuntu) UNRELEASED; urgency=low
+authy-open-vpn (4.0-ubuntu) UNRELEASED; urgency=low
 
   * Initial public release
-  * Rebuild from ground-up to make it more robust.
-
- -- Authy <support@authy.com>  Fri, 23 Aug 2013 11:27:00 -0500
+  * Fixed issues with cert auth, when openvpn was
+  setup not to use certs
+ -- Authy <support@authy.com>  Tue, 29 Oct 2013 11:27:00 -0500
 

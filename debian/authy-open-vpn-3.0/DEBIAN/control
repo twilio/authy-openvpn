@@ -1,6 +1,6 @@
 Package: authy-open-vpn-3.0
 Source: authy-open-vpn
-Version: 3.0-ubuntu
+Version: 4.0-ubuntu
 Architecture: amd64
 Maintainer: Authy <support@authy.com>
 Installed-Size: 8

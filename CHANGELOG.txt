@@ -1,5 +1,10 @@
+4.0
+	- Modify auth to use synchronous auth from OpenVPN
+	- Allow Auth if client cert name is null.
+
 3.0
 	- Add SMS tokens
 	- Add Phone calls
 	- Refactored the whole source code for stability.
 	- Added proper logging.
+

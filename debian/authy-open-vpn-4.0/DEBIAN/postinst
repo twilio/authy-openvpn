@@ -1,0 +1,74 @@
+#!/bin/bash
+#This command need to be called like ./postinstall DESTDIR=/usr/lib/authy
+
+function add_configuration {
+    local conf_file=$1
+    local string_to_add=$2
+    echo "" >> $conf_file
+    echo "# This line was added by the authy openvpn installer" >> $conf_file
+    echo "$string_to_add" >> $conf_file
+}
+
+function add_authy {
+    local server_conf=$1
+    local plugin=$2
+    local key=$3
+    local pam=$4
+    add_configuration $server_conf "plugin $plugin https://api.authy.com/protected/json $key $pam"
+}
+
+function add_pam {
+    local server_conf=$1
+    local plugin=$2
+    local pam_string=$3
+    add_configuration $server_conf "plugin $plugin \"$pam_string\""
+}
+
+function prephase {
+    echo -n "Do you want help editing the server.conf? (y/n): "
+    read helpp
+    if [ $helpp != 'y' ] ; then
+        return 0
+    fi
+
+    local serverconf="/etc/openvpn/server.conf"
+    echo -n "Is $serverconf your openvpn server configuration? (y/n): "
+    read helpp
+
+    if [ $helpp != 'y' ] ; then
+        echo -n "Which and where is your openvpn server configuration? "
+        read serverconf
+    fi
+
+    if [ ! -f "$serverconf" ] ; then
+        echo "Invalid or inexistent file"
+        return 1
+    fi
+
+    echo -n "Authy API KEY: "
+    read authy_key
+
+    echo -n "Are you using or going to use openvpn with pam and Authy? (y/n): "
+    read helpp
+
+    if [ $helpp != 'y' ] ; then
+        add_authy $serverconf $AUTHYSO $authy_key "nopam"
+    else
+        add_authy $serverconf $AUTHYSO $authy_key "pam"
+
+        local pam_string="login login USERNAME password PASSWORD"
+        echo -n "The default pam is $pam_string . Do you want to use another? (y/n): "
+        read helpp
+
+        if [ $helpp == 'y' ]; then
+            echo -n "which pam are you using or going to user? "
+            read pam_string
+        fi
+        add_pam $serverconf $PAMSO "$pam_string"
+    fi
+}
+DESTDIR=/usr/lib/authy
+AUTHYSO=$DESTDIR/authy-openvpn.so
+PAMSO=$DESTDIR/pam.so
+
+prephase

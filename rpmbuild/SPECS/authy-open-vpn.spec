@@ -1,5 +1,5 @@
 %define name authy-open-vpn
-%define version 3.0
+%define version 4.0
 
 Name:           %{name} 
 Version:        %{version}
@@ -51,7 +51,7 @@ echo "Remember to run \"bash $RPM_BUILD_ROOT/usr/lib/authy/postinstall\" for con
 /usr/sbin/authy-vpn-add-user
 
 %changelog
-* Fri Aug 23 2013 Authy <support at authy.com> - 3.0-1
-- Release 3.
+* Tue Oct 29 2013 Authy <support at authy.com> - 4.0-1
+- Release 4.
 
 
