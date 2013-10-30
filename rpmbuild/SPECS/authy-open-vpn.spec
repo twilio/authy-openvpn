@@ -41,7 +41,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 
-echo "Remember to run \"bash $RPM_BUILD_ROOT/usr/lib/authy/postinstall\" for configuration"
+echo "Remember to run \"bash $RPM_BUILD_ROOT/usr/lib/authy/post-install\" for configuration"
 
 %files
 %defattr(-,root,root,-)
