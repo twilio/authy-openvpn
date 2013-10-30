@@ -27,5 +27,7 @@ BUILDROOT/*
 SRPMS/*
 
 #DEB 
-debian/authy*
+debian/authy-open-vpn.debhelper.log
+
+debian/authy-open-vpn.debhelper.log
 
