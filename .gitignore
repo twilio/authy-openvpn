@@ -20,6 +20,12 @@
 *~
 
 .DS_Store
+
+#RPM
 BUILD/*
 BUILDROOT/*
 SRPMS/*
+
+#DEB 
+debian/authy*
+
