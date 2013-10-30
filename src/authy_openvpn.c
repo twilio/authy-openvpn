@@ -216,12 +216,10 @@ authenticate(struct plugin_context *context,
 
   RESULT r = FAIL;
   char *pszToken = NULL;
-  char *pszControl = NULL;
   char *pszResponse = NULL;
   char *pszCommonName = NULL;
   char *pszUsername = NULL;
   char *pszAuthyId = NULL;
-  FILE *fpAuthFile = NULL;
   char *pszTokenStartPosition = NULL;
 
   pszCommonName =  getEnv("common_name", envp);
