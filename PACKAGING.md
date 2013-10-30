@@ -29,7 +29,7 @@ Then ceate a tarball with the version number in the name.
 
 You can create a tarball using
 
-	tar cvzf authy-open-vpn-3.0.tar.gz authy-open-vpn
+	tar cvzf authy-open-vpn-4.0.tar.gz authy-open-vpn-4.0
 
 Move it to the SOURCE DIRECTORY:
 

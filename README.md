@@ -15,9 +15,9 @@ _For hardware dongles, phone calls or LDAP please contact sales@authy.com_
 
 ## Quick Installation
 
-#### Using source code
+#### Using the source code
 
-This is the recommended installation.
+__This is the recommended way of installing.__
 
 ##### Required libs
 
@@ -57,21 +57,22 @@ This is the recommended installation.
 
 #### Using Ubuntu and Debian packages
 
+__We recommend you install using the source code instead. This package
+might not be up to date.__
+
 1. Download the deb package.
-          
-        curl 'https://github.com/authy/authy-open-vpn/blob/master/packages/deb/authy-open-vpn-3.0_3.0-ubuntu_amd64.deb?raw=true' -o authy-openvpn.deb
+
+        curl 'https://github.com/authy/authy-open-vpn/blob/master/packages/deb/authy-open-vpn.deb?raw=true' -o authy-openvpn.deb
 
 2. Move your OpenVPN config file to /etc/openvpn/server.conf
 
         sudo mv /etc/openvpn/[your-open-vpn].conf /etc/openvpn/server.conf
-
 
 3. Install debian package.
 
         sudo dpkg -i authy-openvpn.deb
 
         During installation you will be asked your API Key
-
 
 4. Restart your server (see below).
 
@@ -80,9 +81,11 @@ This is the recommended installation.
 
 #### CentOS and RedHat based systems
 
+__We recommend you install using the source code instead.__
+
 1. Download the rpm package.
 
-        curl 'https://github.com/authy/authy-open-vpn/blob/master/packages/rpm/authy-open-vpn-3.0-3.el6.x86_64.rpm?raw=true' -o authy-openvpn.rpm
+        curl 'https://github.com/authy/authy-open-vpn/blob/master/packages/rpm/authy-open-vpn.rpm?raw=true' -o authy-openvpn.rpm
 
 2. Install package.
 
