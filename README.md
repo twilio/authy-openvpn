@@ -39,9 +39,9 @@ __This is the recommended way of installing.__
 
 1. Compile and install.
 
-        curl "https://github.com/authy/authy-open-vpn/archive/master.tar.gz" -o authy-openvpn.tar.gz
+        curl "https://github.com/authy/authy-openvpn/archive/master.tar.gz" -o authy-openvpn.tar.gz
         tar -zxvf authy-openvpn.tar.gz
-        cd authy-open-vpn-master
+        cd authy-openvpn-master
         make
         sudo make install
 
@@ -62,11 +62,11 @@ might not be up to date.__
 
 1. Download the deb package.
 
-        curl 'https://github.com/authy/authy-open-vpn/blob/master/packages/deb/authy-open-vpn.deb?raw=true' -o authy-openvpn.deb
+        curl 'https://github.com/authy/authy-openvpn/blob/master/packages/deb/authy-openvpn.deb?raw=true' -o authy-openvpn.deb
 
 2. Move your OpenVPN config file to /etc/openvpn/server.conf
 
-        sudo mv /etc/openvpn/[your-open-vpn].conf /etc/openvpn/server.conf
+        sudo mv /etc/openvpn/[your-openvpn].conf /etc/openvpn/server.conf
 
 3. Install debian package.
 
@@ -85,7 +85,7 @@ __We recommend you install using the source code instead.__
 
 1. Download the rpm package.
 
-        curl 'https://github.com/authy/authy-open-vpn/blob/master/packages/rpm/authy-open-vpn.rpm?raw=true' -o authy-openvpn.rpm
+        curl 'https://github.com/authy/authy-openvpn/blob/master/packages/rpm/authy-openvpn.rpm?raw=true' -o authy-openvpn.rpm
 
 2. Install package.
 

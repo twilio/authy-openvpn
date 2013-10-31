@@ -1,4 +1,4 @@
-%define name authy-open-vpn
+%define name authy-openvpn
 %define version 4.0
 
 Name:           %{name}
@@ -8,7 +8,7 @@ Summary:        Authy Open VPN Two-Factor Authentication
 
 Group:          System Environment/Libraries
 License:        BSD
-URL:            https://github.com/authy/authy-open-vpn
+URL:            https://github.com/authy/authy-openvpn
 Source0:        %{name}-%{version}.tar.gz
 
 BuildRequires:	libcurl-devel, pam-devel
