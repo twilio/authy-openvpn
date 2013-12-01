@@ -39,7 +39,7 @@ __This is the recommended way of installing.__
 
 1. Compile and install.
 
-        curl "https://github.com/authy/authy-openvpn/archive/master.tar.gz" -o authy-openvpn.tar.gz
+        curl -L "https://github.com/authy/authy-openvpn/archive/master.tar.gz" -o authy-openvpn.tar.gz
         tar -zxvf authy-openvpn.tar.gz
         cd authy-openvpn-master
         make
