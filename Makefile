@@ -16,7 +16,7 @@ CFLAGS= $(RELEASE_FLAGS)
 
 
 OBJFLAGS= -I./src/headers/ -c
-LIBFLAGS= -shared -Wl,-soname
+LIBFLAGS= -shared -Wl,-install_name
 BUILD_DIR= build
 SDIR= src
 
