@@ -1,7 +1,0 @@
-authy-open-vpn (4.1-ubuntu) UNRELEASED; urgency=low
-
-  * Fixed bug that prevented from registering users.
-  * Allow users 2fa if admin doesn't enable it for them.
-
- -- Authy <support@authy.com>  Fri, 01 Aug 2014 18:32:00 -0500
-
