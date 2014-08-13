@@ -19,6 +19,9 @@
 # Emacs Temps
 *~
 
+# Vim Temps
+*.swp
+
 .DS_Store
 
 #RPM
@@ -26,7 +29,7 @@ BUILD/*
 BUILDROOT/*
 SRPMS/*
 
-#DEB 
+#DEB
 debian/authy-open-vpn*
 
 debian/authy-open-vpn*

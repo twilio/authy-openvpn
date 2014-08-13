@@ -30,10 +30,6 @@ __This is the recommended way of installing.__
 
         - Ubuntu: apt-get install libcurl4-openssl-dev
         - CentOS: yum install libcurl-devel.x86_64
-3. libpam:
-
-        - Ubuntu: apt-get install libpam0g-dev
-        - CentOS: yum install pam-devel.x86_64
 
 ##### Compiling and installing
 
@@ -206,11 +202,16 @@ To use PAM simply answer that you are going to use PAM during the
 
 #### After run the post-install script your server.conf should have the following lines:
 
-  # This line was added by the authy-openvpn installer
-  plugin /usr/lib/authy/authy-openvpn.so https://api.authy.com/protected/json [YOUR_API_KEY] pam
+    # This line was added by the authy-openvpn installer
+    plugin /usr/lib/authy/authy-openvpn.so https://api.authy.com/protected/json [YOUR_API_KEY] pam
 
-  # This line was added by the authy-openvpn installer
-  plugin /usr/lib/authy/pam.so "login login USERNAME password PASSWORD"
+Make sure your pam openvpn plugin is loaded after the authy openvpn plugin.
+Plugins are loaded in the order they appear in the config file, the result should look like:
+
+    # This line was added by the authy-openvpn installer
+    plugin /usr/lib/authy/authy-openvpn.so https://api.authy.com/protected/json [YOUR_API_KEY] pam
+
+    plugin /usr/lib/openvpn/openvpn-auth-pam.so "login login USERNAME password PASSWORD"
 
 
 Also your users will need to separate the password from the token during login

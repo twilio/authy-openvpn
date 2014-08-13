@@ -11,7 +11,7 @@ License:        BSD
 URL:            https://github.com/authy/authy-openvpn
 Source0:        %{name}-%{version}.tar.gz
 
-BuildRequires:	libcurl-devel, pam-devel
+BuildRequires:	libcurl-devel
 
 
 %description
@@ -19,9 +19,6 @@ BuildRequires:	libcurl-devel, pam-devel
  * The First one is authy-openvpn.so that is the basic plugin that uses the API
  of authy.com to only use client cert + authy token to authenticate users to
  your vpn.
- * The Second one is pam.so that is the complementary plugin that you could use
- with the auth-openvpn plugin, to use cert + user/pass + token to authenticate
- users to your vpn.
 
 %prep
 %setup -q
@@ -46,7 +43,6 @@ echo "Remember to run \"bash $RPM_BUILD_ROOT/usr/lib/authy/post-install\" for co
 %files
 %defattr(-,root,root,-)
 /usr/lib/authy/authy-openvpn.so
-/usr/lib/authy/pam.so
 /usr/lib/authy/post-install
 /usr/sbin/authy-vpn-add-user
 

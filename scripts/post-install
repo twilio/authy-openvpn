@@ -27,13 +27,6 @@ function add_authy {
     add_configuration "$server_conf" "plugin $plugin https://api.authy.com/protected/json $key $pam"
 }
 
-function add_pam {
-    local server_conf=$1
-    local plugin=$2
-    local pam_string=$3
-    add_configuration "$server_conf" "plugin $plugin \"$pam_string\""
-}
-
 function prephase {
     echo -n "Do you want us to edit server.conf for you? (y/n): "
     read helpp
@@ -62,16 +55,6 @@ function prephase {
         add_authy $serverconf $AUTHYSO $authy_key "nopam"
     else
         add_authy $serverconf $AUTHYSO $authy_key "pam"
-
-        local pam_string="login login USERNAME password PASSWORD"
-        echo -n "The default pam is $pam_string . Is this OK? (y/n): "
-        read helpp
-
-        if [ $helpp == 'n' ]; then
-            echo -n "Please enter your PAM string:"
-            read pam_string
-        fi
-        add_pam $serverconf $PAMSO "$pam_string"
     fi
 
     echo ""
@@ -80,7 +63,6 @@ function prephase {
 
 DESTDIR=/usr/lib/authy
 AUTHYSO=$DESTDIR/authy-openvpn.so
-PAMSO=$DESTDIR/pam.so
 
 check_root
 prephase
