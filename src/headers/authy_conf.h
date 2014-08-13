@@ -28,12 +28,14 @@
 #include "custom_types.h"
 #include "utils.h"
 
-
+RESULT
+getAuthyIdAndCommonName(__out char **ppszAuthyId,
+                        __out char **ppszCommonName,
+                        const char *pszConfFilename, 
+                        const char *pszUsername 
+                        );
 
 RESULT
-getAuthyIdAndValidateCommonName(__out char *pszAuthyId,
-					 const char *pszConfFileName, 
-           const char *pszUserName, 
-           const char *pszCommonName);
-
+validateCommonName(const char *pszCommonName, 
+                   const char *pszWantedCommonName);
 #endif

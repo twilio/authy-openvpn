@@ -163,21 +163,21 @@ openvpn_plugin_open_v1(unsigned int *type_mask,
 // Standard RESULT
 //
 static RESULT
-responseWasSuccessful(char *pszResponse)
+responseWasSuccessful(char *pszAuthyResponse)
 {
   int cnt;
   jsmn_parser parser;
   jsmn_init(&parser);
   jsmntok_t tokens[20];
-  jsmn_parse(&parser, pszResponse, tokens, 20);
+  jsmn_parse(&parser, pszAuthyResponse, tokens, 20);
 
   /* success isn't always on the same place, look until 19 because it
      shouldn't be the last one because it won't be a key */
   for (cnt = 0; cnt < 19; ++cnt)
   {
-    if(strncmp(pszResponse + (tokens[cnt]).start, "success", (tokens[cnt]).end - (tokens[cnt]).start) == 0)
+    if(strncmp(pszAuthyResponse + (tokens[cnt]).start, "success", (tokens[cnt]).end - (tokens[cnt]).start) == 0)
     {
-      if(strncmp(pszResponse + (tokens[cnt+1]).start, "true", (tokens[cnt+1]).end - (tokens[cnt+1]).start) == 0){
+      if(strncmp(pszAuthyResponse + (tokens[cnt+1]).start, "true", (tokens[cnt+1]).end - (tokens[cnt+1]).start) == 0){
         return OK;
       } else {
         return FAIL;
@@ -216,69 +216,77 @@ authenticate(struct plugin_context *context,
 
   RESULT r = FAIL;
   char *pszToken = NULL;
-  char *pszResponse = NULL;
+  char *pszAuthyResponse = NULL;
   char *pszCommonName = NULL;
   char *pszUsername = NULL;
   char *pszAuthyId = NULL;
+  char *pszWantedCommonName = NULL;
   char *pszTokenStartPosition = NULL;
 
-  pszCommonName =  getEnv("common_name", envp);
-  pszUsername    = getEnv("username", envp);
-  pszToken       = getEnv("password", envp);
-  pszResponse    = calloc(CURL_MAX_WRITE_SIZE + 1, sizeof(char)); 
-  pszAuthyId		 = calloc(MAX_AUTHY_ID_LENGTH + 1, sizeof(char));
 
   trace(INFO, __LINE__, "[Authy] Authy Two-Factor Authentication started.\n");
 
-  if (!pszCommonName){
-    pszCommonName = calloc(1, sizeof (char));
-    trace(INFO, __LINE__,"[Authy] CommonName is NULL. Initializing it to an empty string.");
-  }
-	
-  if(!pszCommonName || !pszUsername || !pszToken || !pszResponse || !pszAuthyId){
-    if(!pszCommonName){
-      trace(ERROR, __LINE__,"[Authy] ERROR: CommonName is NULL. Marking Auth as failure.\n");
-    }
-    if(!pszUsername){
-      trace(ERROR, __LINE__,"[Authy] ERROR: Username is NULL. Marking Auth as failure.\n");
-    }
-    if(!pszToken){
-      trace(ERROR, __LINE__, "[Authy] ERROR: Token is NULL. Marking Auth as failure.\n");
-    }
-    if(!pszResponse){
-      trace(ERROR, __LINE__, "[Authy] ERROR: Reponse is NULL. Marking Auth as failure.\n");
-    }
-    if(!pszAuthyId){
-      trace(ERROR, __LINE__, "[Authy] ERROR: AuthyID is NULL. Marking Auth as failure.\n");
-    }
-
+  pszUsername    = getEnv("username", envp);
+  if(!pszUsername){
+    trace(ERROR, __LINE__,"[Authy] ERROR: Username is NULL. Marking Auth as failure.\n");
     iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR;
     goto EXIT;
-  }
+   }
 
-  r = getAuthyIdAndValidateCommonName(pszAuthyId,
-                                      AUTHY_VPN_CONF, 
-                                      pszUsername, 
-                                      pszCommonName); 
+  r = getAuthyIdAndCommonName(&pszAuthyId, &pszWantedCommonName,AUTHY_VPN_CONF, pszUsername); 
   if(FAILED(r)){
 		trace(ERROR, 
           __LINE__, 
-          "[Authy] Authentication failed. Authy ID was not found for %s or commonName validation failed.\n",
+          "[Authy] Authentication failed. Authy ID was not found for %s and Two-Factor Authentication is required.\n",
           pszUsername);
     iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR;
     goto EXIT;
   }
-	
+  
+  // If AuthyId is null but function still returned success means that username was not found
+  // but the config allows username to logon without to factor auth.
+  if(SUCCESS(r) && !pszAuthyId){ 
+		trace(INFO, 
+          __LINE__, 
+          "[Authy] Warning: Authentication succeeded because username %s was not found in config file and Two-Factor is not required.\n",
+          pszUsername);
+    iAuthResult = OPENVPN_PLUGIN_FUNC_SUCCESS;
+    goto EXIT;
+  }
+
+  pszCommonName =  getEnv("common_name", envp);
+  if(pszWantedCommonName && FAILED(validateCommonName(pszCommonName, pszWantedCommonName)) ){ 
+		trace(INFO, 
+          __LINE__, 
+          "[Authy] Authentication failed. CommonaName validation failed.\n");   
+    iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR;
+    goto EXIT;
+  }
+
+  // From here we start authenticating the user token.
+  pszToken  = getEnv("password", envp);
+  if(!pszToken){
+    trace(ERROR, __LINE__, "[Authy] ERROR: Token is NULL. Marking Auth as failure.\n");
+    iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR;
+    goto EXIT;
+  }
+
+  pszAuthyResponse= calloc(CURL_MAX_WRITE_SIZE + 1, sizeof(char)); //allocate memory for Authy Response
+  if(!pszAuthyResponse){
+    trace(ERROR, __LINE__, "[Authy] ERROR: Unable to allocate memory for curl response. Marking Auth as failure.\n");
+    iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR;
+    goto EXIT;
+  }
 
   // Here check if the user is trying to just request a phone call or an sms token.
   if (0 == strcmp(pszToken, "sms")){
     
-    sms(context->pszApiUrl, pszAuthyId, context->pszApiKey, pszResponse);
+    sms(context->pszApiUrl, pszAuthyId, context->pszApiKey, pszAuthyResponse);
     iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR; //doing sms always fails authentication
     goto EXIT;
   }
   else if(0 == strcmp(pszToken, "call")){
-     call(context->pszApiUrl, pszAuthyId, context->pszApiKey, pszResponse);
+     call(context->pszApiUrl, pszAuthyId, context->pszApiKey, pszAuthyResponse);
      iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR; //doing phone call always fails authentication
      goto EXIT;
   }
@@ -303,9 +311,9 @@ authenticate(struct plugin_context *context,
                   pszToken, 
                   pszAuthyId, 
                   context->pszApiKey, 
-                  pszResponse);
+                  pszAuthyResponse);
 
-  if (SUCCESS(r) && SUCCESS(responseWasSuccessful(pszResponse))){
+  if (SUCCESS(r) && SUCCESS(responseWasSuccessful(pszAuthyResponse))){
     iAuthResult = OPENVPN_PLUGIN_FUNC_SUCCESS; //Two-Factor Auth was succesful
     goto EXIT;
   }
@@ -315,8 +323,8 @@ authenticate(struct plugin_context *context,
 EXIT:
   
 	if(pszAuthyId) {cleanAndFree(pszAuthyId);}
-  if(pszToken) { memset(pszToken, 0, (strlen(pszToken))); } // Cleanup any sensible data
-  if(pszResponse) { cleanAndFree(pszResponse);};
+  if(pszToken) { memset(pszToken, 0, (strlen(pszToken))); } // Cleanup the token. Password is left untouch.
+  if(pszAuthyResponse) { cleanAndFree(pszAuthyResponse);};
   
   if(iAuthResult == OPENVPN_PLUGIN_FUNC_SUCCESS){
     trace(INFO, __LINE__, "[Authy] Auth finished. Result: Authy success for username %s.\n", pszUsername);
