@@ -69,6 +69,10 @@ or
 
 Remember that the last one is to also check the match between `USERNAME` and `COMMON_NAME`
 
+__Recommended:__
+
+Set the `reneg-sec 0` option in your OpenVPN configuration file. This will prevent the server from forcing renegotiation (and asking for a new Authy token).
+Note that if your OpenVPN version is `<= 2.2` you need to set reneg-sec to a large value instead of 0.
 
 ### Restarting your OpenVPN server
 
