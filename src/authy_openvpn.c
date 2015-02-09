@@ -313,6 +313,7 @@ authenticate(struct plugin_context *context,
     pszToken = pszTokenStartPosition + 1;
   }
 
+  pszToken = truncateAndSanitizeToken(pszToken);
 
   trace(INFO, __LINE__, "[Authy] Authenticating username=%s, token=%s with AUTHY_ID=%s.\n", pszUsername, pszToken, pszAuthyId);
 
