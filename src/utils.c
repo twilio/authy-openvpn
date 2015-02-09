@@ -22,7 +22,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
 
+#ifndef WIN32
+#include "sys/utsname.h"
+#endif
+
+#include "openvpn-plugin.h"
 #include "constants.h"
 #include "logger.h"
 
@@ -119,4 +125,33 @@ truncateAndSanitizeToken(char *pszToken)
   }
 
   return pszToken;
+}
+
+// Description
+//
+// Generates a user agent string for the plugin.
+//
+// Returns
+//
+//   A string with the user agent.
+char *
+getUserAgent()
+{
+  size_t userAgentSize = 0;
+  char *pszUserAgent = NULL;
+
+#ifdef WIN32
+  userAgentSize = strlen("AuthyOpenVPN/x (Windows)") + 10; // Additional space for version changes
+  pszUserAgent = calloc(userAgentSize, sizeof(char));
+  sprintf(pszUserAgent, "AuthyOpenVPN/%i (Windows)", OPENVPN_PLUGIN_VERSION);
+#else
+  struct utsname unameData;
+  uname(&unameData);
+  userAgentSize = strlen("AuthyOpenVPN/x ( )") + strlen(unameData.sysname) + strlen(unameData.release) + 10; // Additional space for version changes
+  pszUserAgent = calloc(userAgentSize, sizeof(char));
+
+  sprintf(pszUserAgent, "AuthyOpenVPN/%i (%s %s)", OPENVPN_PLUGIN_VERSION, unameData.sysname, unameData.release );
+#endif
+
+  return pszUserAgent;
 }

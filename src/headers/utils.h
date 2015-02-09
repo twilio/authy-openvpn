@@ -28,5 +28,6 @@
 void cleanAndFree(void *pszPtr);
 char* removeSpaces(char *pszString);
 char* truncateAndSanitizeToken(char *pszString);
+char* getUserAgent();
 
 #endif

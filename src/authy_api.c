@@ -175,6 +175,7 @@ doHttpRequest(char *pszResultUrl, char *pszPostFields, char *pszResponse)
   RESULT r = FAIL;
   CURL *pCurl = NULL;
   int curlResult = -1;
+  char *pszUserAgent = getUserAgent();
 
   curl_global_init(CURL_GLOBAL_ALL);
 
@@ -200,6 +201,7 @@ doHttpRequest(char *pszResultUrl, char *pszPostFields, char *pszResponse)
   curl_easy_setopt(pCurl, CURLOPT_VERBOSE, 1L);
   curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, curlWriter);
   curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, pszResponse);
+  curl_easy_setopt(pCurl, CURLOPT_USERAGENT, pszUserAgent);
 
   curlResult = (int) curl_easy_perform(pCurl);
   if(0 != curlResult) {
