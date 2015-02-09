@@ -29,6 +29,7 @@
 #include "utils.h"
 #include "logger.h"
 #include "authy_api.h"
+#include "constants.h"
 
 #ifdef WIN32
 #define snprintf _snprintf
@@ -175,7 +176,21 @@ doHttpRequest(char *pszResultUrl, char *pszPostFields, char *pszResponse)
   RESULT r = FAIL;
   CURL *pCurl = NULL;
   int curlResult = -1;
-  char *pszUserAgent = getUserAgent();
+  char *pszUserAgent = NULL;
+
+  pszUserAgent = getUserAgent();
+  if(pszUserAgent == NULL)
+  {
+    trace(ERROR, __LINE__, "[Authy] Cannot get user agent. Setting user to unkown.");
+
+    pszUserAgent = calloc(strlen(UNKNOWN_VERSION_AGENT) + 1, sizeof(char));
+    if(pszUserAgent == NULL)
+    {
+      trace(ERROR, __LINE__, "[Authy] Could not allocate memory for user agent.");
+      goto EXIT;
+    }
+    pszUserAgent = strncpy(pszUserAgent, UNKNOWN_VERSION_AGENT, strlen(UNKNOWN_VERSION_AGENT));
+  }
 
   curl_global_init(CURL_GLOBAL_ALL);
 
@@ -188,7 +203,8 @@ doHttpRequest(char *pszResultUrl, char *pszPostFields, char *pszResponse)
 
   curl_easy_setopt(pCurl, CURLOPT_URL, pszResultUrl);
 
-  if(pszPostFields){// POST REQUEST
+  if(pszPostFields) // POST REQUEST
+  {
     curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, pszPostFields);
   }
 
@@ -214,6 +230,10 @@ doHttpRequest(char *pszResultUrl, char *pszPostFields, char *pszResponse)
   r = OK;
 
 EXIT:
+  if(pszUserAgent)
+  {
+    free(pszUserAgent);
+  }
 
 #ifdef WIN32
   trace(DEBUG, __LINE__, "[Authy] Can't clean curl, curl easy cleanup doesn't work on Windows");
