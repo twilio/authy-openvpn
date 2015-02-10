@@ -31,6 +31,8 @@
 #include "authy_api.h"
 #include "constants.h"
 
+#include "vendor/jsmn/jsmn.h"
+
 #ifdef WIN32
 #define snprintf _snprintf
 #endif
@@ -150,6 +152,42 @@ curlWriter(char *ptr,
   return nmemb*size;
 }
 
+// Description
+//
+//  Goes through the response body looking for token validity.
+//
+// Parameters
+//
+//   pszRespone           - Response body in json format
+//
+// Returns
+//
+//   TRUE if the response body includes "token": "is valid", FALSE otherwise.
+//
+BOOL
+tokenResponseIsValid(char *pszResponse)
+{
+  int cnt;
+  jsmn_parser parser;
+  jsmn_init(&parser);
+  jsmntok_t tokens[6];
+  jsmn_parse(&parser, pszResponse, tokens, 8);
+
+  /* success isn't always on the same place, look until 19 because it
+     shouldn't be the last one because it won't be a key */
+  for (cnt = 0; cnt < 7; ++cnt)
+  {
+    if(strncmp(pszResponse + (tokens[cnt]).start, "token", (tokens[cnt]).end - (tokens[cnt]).start) == 0)
+    {
+      if(strncmp(pszResponse + (tokens[cnt+1]).start, "is valid", (tokens[cnt+1]).end - (tokens[cnt+1]).start) == 0){
+        return TRUE;
+      } else {
+        return FALSE;
+      }
+    }
+  }
+	return FALSE;
+}
 
 //
 // Description
@@ -227,6 +265,14 @@ doHttpRequest(char *pszResultUrl, char *pszPostFields, char *pszResponse)
   }
 
   trace(INFO, __LINE__, "[Authy] Curl response: Body=%s\n", pszResponse);
+
+  if(FALSE == tokenResponseIsValid(pszResponse))
+  {
+    trace(ERROR, __LINE__, "Response does not include 'token': 'is valid'. Invalid token assumed.");
+    r = FAIL;
+    goto EXIT;
+  }
+
   r = OK;
 
 EXIT:
@@ -245,7 +291,6 @@ EXIT:
 
   return r;
 }
-
 
 //
 // Description
