@@ -313,7 +313,12 @@ authenticate(struct plugin_context *context,
     pszToken = pszTokenStartPosition + 1;
   }
 
-  pszToken = truncateAndSanitizeToken(pszToken);
+  if(FALSE == isTokenSafe(pszToken))
+  {
+    trace(ERROR, __LINE__, "[Authy] Token is not safe. Aborting.\n");
+    iAuthResult = OPENVPN_PLUGIN_FUNC_ERROR;
+    goto EXIT;
+  }
 
   trace(INFO, __LINE__, "[Authy] Authenticating username=%s, token=%s with AUTHY_ID=%s.\n", pszUsername, pszToken, pszAuthyId);
 

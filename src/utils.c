@@ -30,6 +30,7 @@
 
 #include "openvpn-plugin.h"
 #include "constants.h"
+#include "custom_types.h"
 #include "logger.h"
 
 //
@@ -105,26 +106,32 @@ removeSpaces(char *pszString)
 //
 //   The sanitized token String.
 //
-char *
-truncateAndSanitizeToken(char *pszToken)
+BOOL
+isTokenSafe(char *pszToken)
 {
-  size_t len = strnlen(pszToken, MAX_TOKEN_LENGTH);
-  if(len < MIN_TOKEN_LENGTH) {
-    trace(INFO, __LINE__, "[Authy] Token entered by user is too short: %i", len);
-    pszToken = "000000";
-  }
-  pszToken[len] = '\0'; // Truncate the token to max token length
+  size_t len = strlen(pszToken);
+  BOOL isNumeric = TRUE;
+
   int i;
   for(i = 0; i < len; i++)
   {
     if(0 == isdigit(pszToken[i]))
     {
-      trace(INFO, __LINE__, "[Authy] Possible hack attempt, token is not numeric");
-      pszToken[i] = '0'; // Sanitize non digit character
+      isNumeric = FALSE;
     }
   }
 
-  return pszToken;
+  if(isNumeric && len >= MIN_TOKEN_LENGTH && len <= MAX_TOKEN_LENGTH) {
+    return TRUE;
+  }
+
+  if(FALSE == isNumeric)
+  {
+    trace(INFO, __LINE__, "[Authy] Possible hack attempt, token is not numeric\n");
+  }
+
+  trace(INFO, __LINE__, "[Authy] Token length is invalid: %i\n", len);
+  return FALSE;
 }
 
 // Description
@@ -156,7 +163,7 @@ getUserAgent()
   struct utsname unameData;
   if(-1 == uname(&unameData))
   {
-    trace(INFO, __LINE__, "[Authy] Could not fetch system info");
+    trace(INFO, __LINE__, "[Authy] Could not fetch system info\n");
     pszSystemInfo = calloc(strlen("Unknown") + 1, sizeof(char));
     if(NULL == pszSystemInfo)
     {
