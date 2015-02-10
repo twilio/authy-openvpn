@@ -179,14 +179,14 @@ doHttpRequest(char *pszResultUrl, char *pszPostFields, char *pszResponse)
   char *pszUserAgent = NULL;
 
   pszUserAgent = getUserAgent();
-  if(pszUserAgent == NULL)
+  if(NULL == pszUserAgent)
   {
-    trace(ERROR, __LINE__, "[Authy] Cannot get user agent. Setting user to unkown.");
+    trace(ERROR, __LINE__, "[Authy] Cannot get user agent. Setting user agent to unkown.");
 
     pszUserAgent = calloc(strlen(UNKNOWN_VERSION_AGENT) + 1, sizeof(char));
     if(pszUserAgent == NULL)
     {
-      trace(ERROR, __LINE__, "[Authy] Could not allocate memory for user agent.");
+      trace(ERROR, __LINE__, "[Authy] Failed to set user agent. Could not allocate memory for user agent.");
       goto EXIT;
     }
     pszUserAgent = strncpy(pszUserAgent, UNKNOWN_VERSION_AGENT, strlen(UNKNOWN_VERSION_AGENT));

@@ -144,49 +144,49 @@ getUserAgent()
   char *pszSystemInfo = NULL;
 
 #ifdef WIN32
-  systemInfoLength = strlen("Windows") + 1;
-  pszSystemInfo = calloc(systemInfoLength, sizeof(char));
+  systemInfoLength = strlen("Windows");
+  pszSystemInfo = calloc(systemInfoLength + 1, sizeof(char));
   if(NULL == pszSystemInfo)
   {
     trace(ERROR, __LINE__, "[Authy] Could not allocate space for System Info\n");
     goto EXIT;
   }
-  strncpy(pszSystemInfo, "Windows", systemInfoLength);
+  snprintf(pszSystemInfo, systemInfoLength, "Windows");
 #else
   struct utsname unameData;
   if(-1 == uname(&unameData))
   {
     trace(INFO, __LINE__, "[Authy] Could not fetch system info");
-    pszSystemInfo = calloc(1, sizeof(char));
+    pszSystemInfo = calloc(strlen("Unknown") + 1, sizeof(char));
     if(NULL == pszSystemInfo)
     {
       trace(ERROR, __LINE__, "[Authy] Could not allocate space for System Info\n");
       goto EXIT;
     }
-    pszSystemInfo[0] = '\0';
+    snprintf(pszSystemInfo, strlen("Unknown"), "Unknown");
   }
   else
   {
-    systemInfoLength = strlen(unameData.sysname) + strlen(" ") + strlen(unameData.release) + 1;
-    pszSystemInfo = calloc(systemInfoLength, sizeof(char));
+    systemInfoLength = strlen(unameData.sysname) + strlen(" ") + strlen(unameData.release);
+    pszSystemInfo = calloc(systemInfoLength + 1, sizeof(char));
     if(NULL == pszSystemInfo)
     {
       trace(ERROR, __LINE__, "[Authy] Could not allocate space for System Info\n");
       goto EXIT;
     }
-    sprintf(pszSystemInfo, "%s %s", unameData.sysname, unameData.release);
+    snprintf(pszSystemInfo, systemInfoLength, "%s %s", unameData.sysname, unameData.release);
   }
 #endif
 
-  userAgentSize = strlen("AuthyOpenVPN ()") + strlen(AUTHY_OPENVPN_VERSION) + strlen(pszSystemInfo) + 1;
-  pszUserAgent = calloc(userAgentSize, sizeof(char));
+  userAgentSize = strlen("AuthyOpenVPN/ ()") + strlen(AUTHY_OPENVPN_VERSION) + strlen(pszSystemInfo);
+  pszUserAgent = calloc(userAgentSize + 1, sizeof(char));
   if(NULL == pszUserAgent)
   {
     trace(ERROR, __LINE__, "[Authy] Could not allocate space for User Agent\n");
     goto EXIT;
   }
 
-  sprintf(pszUserAgent, "AuthyOpenVPN/%s (%s)", AUTHY_OPENVPN_VERSION, pszSystemInfo );
+  snprintf(pszUserAgent, userAgentSize, "AuthyOpenVPN/%s (%s)", AUTHY_OPENVPN_VERSION, pszSystemInfo );
 
 EXIT:
   if(pszSystemInfo)
