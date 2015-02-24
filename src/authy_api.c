@@ -266,13 +266,6 @@ doHttpRequest(char *pszResultUrl, char *pszPostFields, char *pszResponse)
 
   trace(INFO, __LINE__, "[Authy] Curl response: Body=%s\n", pszResponse);
 
-  if(FALSE == tokenResponseIsValid(pszResponse))
-  {
-    trace(ERROR, __LINE__, "Response does not include 'token': 'is valid'. Invalid token assumed.");
-    r = FAIL;
-    goto EXIT;
-  }
-
   r = OK;
 
 EXIT:
@@ -407,6 +400,12 @@ verifyToken(const char *pszApiUrl,
     goto EXIT;
   }
 
+  if(FALSE == tokenResponseIsValid(pszResponse))
+  {
+    trace(ERROR, __LINE__, "Response does not include 'token': 'is valid'. Invalid token assumed.");
+    r = FAIL;
+    goto EXIT;
+  }
 
 EXIT:
   cleanAndFree(pszResultUrl);
