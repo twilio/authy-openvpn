@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #ifndef WIN32
 #include "sys/utsname.h"
@@ -146,7 +147,6 @@ getUserAgent()
 {
   size_t userAgentSize = 0;
   size_t systemInfoLength = 0;
-  ssize_t read = 0;
   char *pszUserAgent = NULL;
   char *pszSystemInfo = NULL;
 

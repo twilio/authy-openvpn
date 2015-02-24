@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 
 #include <stdbool.h>
+#include "custom_types.h"
 
 #ifndef __UTILS_H__
 #define __UTILS_H__ 1
@@ -29,5 +30,6 @@ void cleanAndFree(void *pszPtr);
 char* removeSpaces(char *pszString);
 char* truncateAndSanitizeToken(char *pszString);
 char* getUserAgent();
+BOOL* isTokenSafe(char *pszToken);
 
 #endif
