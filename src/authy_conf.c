@@ -31,6 +31,10 @@
 #define snprintf _snprintf
 #endif
 
+#ifdef WIN32
+#define strcasecmp _stricmp
+#endif
+
 // Description
 //
 // Checks if pszAuthyId is a valid authyId
@@ -191,7 +195,7 @@ getAuthyIdAndCommonName(__out char **ppszAuthyId,
       pch = strtok (NULL, " \t"); //Go to the next token 
       i++;
     }    
-    if(0 == strcmp(columns[0], pszUsername)){
+    if(0 == strcasecmp(columns[0], pszUsername)){
       trace(DEBUG, __LINE__, "[Authy] Found column for pszUsername=%s column is %s\n", pszUsername, line); 
       break; 
     }
