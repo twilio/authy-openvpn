@@ -170,14 +170,16 @@ tokenResponseIsValid(char *pszResponse)
   int cnt;
   jsmn_parser parser;
   jsmn_init(&parser);
-  jsmntok_t tokens[20];
+  jsmntok_t tokens[20] = {{0}};
   jsmn_parse(&parser, pszResponse, tokens, 20);
 
   /* success isn't always on the same place, look until 19 because it
      shouldn't be the last one because it won't be a key */
   for (cnt = 0; cnt < 19; cnt++)
   {
-    if(strncmp(pszResponse + (tokens[cnt]).start, "token", (tokens[cnt]).end - (tokens[cnt]).start) == 0)
+    /* avoid matching empty strings since "" == "" */
+    int len = (tokens[cnt]).end - (tokens[cnt]).start;
+    if(len > 0 && strncmp(pszResponse + (tokens[cnt]).start, "token", len) == 0)
     {
       if(strncmp(pszResponse + (tokens[cnt+1]).start, "is valid", (tokens[cnt+1]).end - (tokens[cnt+1]).start) == 0){
         return TRUE;
