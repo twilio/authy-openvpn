@@ -246,3 +246,6 @@ Your users will need to add
 to their `client.conf`. This is to ensure that the OpenVPN client asks
 for username and password (this is where they enter the token).
 
+## Copyright
+
+Copyright (c) 2013-2020 Authy Inc.
