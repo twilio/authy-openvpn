@@ -156,7 +156,7 @@ if [ $? -ne 0 ] ; then
     exit 1
 fi
 chown root $CONFIG_FILE
-chmod 600  $CONFIG_FILE
+chmod 644  $CONFIG_FILE
 
 check_api_key
 register_users
