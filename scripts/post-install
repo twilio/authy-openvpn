@@ -24,7 +24,7 @@ function add_authy {
     local pam=$4
 
     sed -ie '/authy-openvpn/d' "$server_conf"
-    add_configuration "$server_conf" "plugin $plugin https://api.authy.com/protected/json $key $pam"
+    add_configuration "$server_conf" "plugin $plugin \"https://api.authy.com/protected/json $key $pam\""
 }
 
 function prephase {
